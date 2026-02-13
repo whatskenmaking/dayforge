@@ -394,6 +394,11 @@
       padding: 12px 18px;
     }
 
+    /* More-fields: on desktop, toggle hidden and body always visible */
+    .detail-more-toggle { display: none; }
+    .detail-more-body { display: block; }
+    #deleteTaskBtn2 { display: none; }
+
     .section-heading {
       display: flex;
       align-items: center;
@@ -936,6 +941,89 @@
       }
       @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
+      /* Detail form mobile styling */
+      .details.mobile-open .section-title { display: none; }
+
+      .details.mobile-open .detail-title-input {
+        font-size: 20px !important;
+        font-weight: 600 !important;
+        border: none !important;
+        border-bottom: 2px solid var(--border) !important;
+        border-radius: 0 !important;
+        padding: 8px 0 !important;
+        background: transparent !important;
+      }
+      .details.mobile-open .detail-title-input:focus {
+        border-bottom-color: var(--accent) !important;
+        outline: none !important;
+      }
+
+      .details.mobile-open textarea#detailNotes {
+        min-height: 60px;
+        font-size: 15px;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        border-radius: 0;
+        padding: 8px 0;
+        background: transparent;
+        resize: none;
+      }
+
+      .details.mobile-open .detail-essential-row {
+        grid-template-columns: 1fr !important;
+        gap: 4px 0 !important;
+        margin-top: 4px !important;
+        margin-bottom: 8px !important;
+      }
+      .details.mobile-open .detail-essential-row .field-label {
+        margin-top: 8px;
+      }
+      .details.mobile-open .detail-essential-row select,
+      .details.mobile-open .detail-essential-row input {
+        font-size: 15px;
+      }
+
+      /* Hide desktop save/delete buttons on mobile */
+      .details.mobile-open .details-actions { display: none; }
+
+      /* More fields toggle & body */
+      .detail-more-fields {
+        margin-top: 8px;
+        border-top: 1px solid var(--border);
+        padding-top: 4px;
+      }
+      .detail-more-toggle {
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 12px 0;
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--accent);
+        cursor: pointer;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .detail-more-toggle::before {
+        content: '▸';
+        display: inline-block;
+        transition: transform 0.2s ease;
+        font-size: 12px;
+      }
+      .detail-more-toggle.open::before {
+        transform: rotate(90deg);
+      }
+      .detail-more-body {
+        display: none;
+        padding-bottom: 16px;
+      }
+      .detail-more-body.open {
+        display: block;
+      }
+      #deleteTaskBtn2 { display: block; }
+
       .mobile-backdrop.visible {
         display: block; position: fixed; inset: 0; z-index: 35;
         background: rgba(17, 19, 22, 0.35);
@@ -1059,19 +1147,17 @@
       <div class="section-title" id="detailsTitle">Task Details</div>
       <div id="detailsEmpty" class="empty">Select a task or project to edit its details.</div>
       <div id="detailsForm" class="details-form" style="display:none;">
-        <label class="field-label" for="detailTitle">Title</label>
-        <input type="text" id="detailTitle" placeholder="Task title" />
-        <label class="field-label" for="detailNotes">Notes</label>
-        <textarea id="detailNotes" placeholder="Notes, links, context"></textarea>
-        <div class="detail-row">
-          <label class="field-label" for="detailStart">Start date</label>
-          <label class="field-label" for="detailDue">Due date</label>
-          <input type="date" id="detailStart" />
+        <!-- Essential fields (always visible) -->
+        <input type="text" id="detailTitle" placeholder="Task title" class="detail-title-input" />
+        <textarea id="detailNotes" placeholder="Notes"></textarea>
+        <div class="detail-row detail-essential-row">
+          <label class="field-label" for="detailDue">Due</label>
           <input type="date" id="detailDue" />
+          <label class="field-label" for="detailProject">Project</label>
+          <select id="detailProject"></select>
         </div>
-        <div class="detail-row">
+        <div class="detail-row detail-essential-row">
           <label class="field-label" for="detailStatus">Status</label>
-          <label class="field-label" for="detailLinger">Linger policy</label>
           <select id="detailStatus">
             <option value="next">Next</option>
             <option value="waiting">Waiting</option>
@@ -1079,87 +1165,93 @@
             <option value="blocked">Blocked</option>
             <option value="done">Done</option>
           </select>
-          <select id="detailLinger">
-            <option value="flexible">Flexible</option>
-            <option value="soon">Do Soon</option>
-          </select>
-        </div>
-        <div class="detail-row">
-          <label class="field-label" for="detailRepeat">Repeat</label>
-          <div></div>
-          <select id="detailRepeat" class="full-span">
-            <option value="none">Does not repeat</option>
-            <option value="daily">Repeats daily</option>
-            <option value="weekly">Repeats weekly</option>
-            <option value="monthly">Repeats monthly</option>
-          </select>
-        </div>
-        <div class="detail-row" id="repeatEveryRow">
-          <label class="field-label" for="detailRepeatEvery">Every (months)</label>
-          <div></div>
-          <input type="number" id="detailRepeatEvery" min="1" step="1" placeholder="1" class="full-span" />
-        </div>
-        <div class="detail-row">
-          <label class="field-label" for="detailDurationValue">Duration</label>
-          <label class="field-label" for="detailDurationUnit">Unit</label>
-          <input type="number" id="detailDurationValue" min="0" step="1" placeholder="Optional" />
-          <select id="detailDurationUnit">
-            <option value="minutes">Minutes</option>
-            <option value="hours">Hours</option>
-          </select>
-        </div>
-        <div class="detail-row">
-          <label class="field-label" for="detailActualMinutes">Actual minutes</label>
-          <div></div>
-          <input type="number" id="detailActualMinutes" min="0" step="1" placeholder="Optional" class="full-span" />
-        </div>
-        <div class="collapsible">
-          <button class="collapsible-toggle" type="button" id="progressToggle">Progress</button>
-          <div class="collapsible-body" id="progressBody">
-            <div class="detail-row">
-              <label class="field-label" for="detailProgressPercent">Progress %</label>
-              <label class="field-label" for="detailProgressUnits">Units label</label>
-              <input type="number" id="detailProgressPercent" min="0" max="100" step="1" placeholder="0-100" />
-              <input type="text" id="detailProgressUnits" placeholder="tiles, pages, etc." />
-            </div>
-            <div class="detail-row">
-              <label class="field-label" for="detailProgressDone">Done</label>
-              <label class="field-label" for="detailProgressTotal">Total</label>
-              <input type="number" id="detailProgressDone" min="0" step="1" placeholder="0" />
-              <input type="number" id="detailProgressTotal" min="0" step="1" placeholder="0" />
-            </div>
-          </div>
-        </div>
-        <div class="detail-row">
-          <label class="field-label" for="detailTags">Tags</label>
-          <div></div>
-          <input type="text" id="detailTags" class="full-span" placeholder="tags (comma separated)" />
-        </div>
-        <div class="detail-row">
-          <label class="field-label" for="detailProject">Project</label>
           <label class="field-label" for="detailFlagged">Flag</label>
-          <select id="detailProject"></select>
           <select id="detailFlagged">
-            <option value="false">Not flagged</option>
+            <option value="false">No</option>
             <option value="true">Flagged</option>
           </select>
         </div>
-        <div class="detail-row">
-          <label class="field-label" for="detailPhase">Project section</label>
-          <div></div>
-          <select id="detailPhase" class="full-span"></select>
-        </div>
-        <div class="detail-row">
-          <label class="field-label" for="detailContext">Single task list</label>
-          <select id="detailContext" class="full-span">
-            <option value="">Single tasks: none</option>
-            <option value="work">Single tasks: work</option>
-            <option value="personal">Single tasks: personal</option>
-          </select>
-        </div>
+        <!-- Save/Delete (desktop) -->
         <div class="details-actions">
           <button class="btn primary" id="saveTaskBtn">Save Task</button>
           <button class="btn" id="deleteTaskBtn">Delete Task</button>
+        </div>
+        <!-- More fields (collapsed on mobile) -->
+        <div class="detail-more-fields" id="detailMoreFields">
+          <button class="detail-more-toggle" type="button" id="detailMoreToggle">More fields</button>
+          <div class="detail-more-body" id="detailMoreBody">
+            <div class="detail-row">
+              <label class="field-label" for="detailStart">Start date</label>
+              <input type="date" id="detailStart" class="full-span" />
+            </div>
+            <div class="detail-row">
+              <label class="field-label" for="detailLinger">Linger policy</label>
+              <select id="detailLinger" class="full-span">
+                <option value="flexible">Flexible</option>
+                <option value="soon">Do Soon</option>
+              </select>
+            </div>
+            <div class="detail-row">
+              <label class="field-label" for="detailRepeat">Repeat</label>
+              <select id="detailRepeat" class="full-span">
+                <option value="none">Does not repeat</option>
+                <option value="daily">Repeats daily</option>
+                <option value="weekly">Repeats weekly</option>
+                <option value="monthly">Repeats monthly</option>
+              </select>
+            </div>
+            <div class="detail-row" id="repeatEveryRow">
+              <label class="field-label" for="detailRepeatEvery">Every (months)</label>
+              <input type="number" id="detailRepeatEvery" min="1" step="1" placeholder="1" class="full-span" />
+            </div>
+            <div class="detail-row">
+              <label class="field-label" for="detailTags">Tags</label>
+              <input type="text" id="detailTags" class="full-span" placeholder="comma separated" />
+            </div>
+            <div class="detail-row">
+              <label class="field-label" for="detailPhase">Section</label>
+              <select id="detailPhase" class="full-span"></select>
+            </div>
+            <div class="detail-row">
+              <label class="field-label" for="detailContext">Single task list</label>
+              <select id="detailContext" class="full-span">
+                <option value="">None</option>
+                <option value="work">Work</option>
+                <option value="personal">Personal</option>
+              </select>
+            </div>
+            <div class="detail-row">
+              <label class="field-label" for="detailDurationValue">Duration</label>
+              <label class="field-label" for="detailDurationUnit">Unit</label>
+              <input type="number" id="detailDurationValue" min="0" step="1" placeholder="Optional" />
+              <select id="detailDurationUnit">
+                <option value="minutes">Minutes</option>
+                <option value="hours">Hours</option>
+              </select>
+            </div>
+            <div class="detail-row">
+              <label class="field-label" for="detailActualMinutes">Actual minutes</label>
+              <input type="number" id="detailActualMinutes" min="0" step="1" placeholder="Optional" class="full-span" />
+            </div>
+            <div class="collapsible">
+              <button class="collapsible-toggle" type="button" id="progressToggle">Progress</button>
+              <div class="collapsible-body" id="progressBody">
+                <div class="detail-row">
+                  <label class="field-label" for="detailProgressPercent">Progress %</label>
+                  <label class="field-label" for="detailProgressUnits">Units label</label>
+                  <input type="number" id="detailProgressPercent" min="0" max="100" step="1" placeholder="0-100" />
+                  <input type="text" id="detailProgressUnits" placeholder="tiles, pages, etc." />
+                </div>
+                <div class="detail-row">
+                  <label class="field-label" for="detailProgressDone">Done</label>
+                  <label class="field-label" for="detailProgressTotal">Total</label>
+                  <input type="number" id="detailProgressDone" min="0" step="1" placeholder="0" />
+                  <input type="number" id="detailProgressTotal" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+            </div>
+            <button class="btn" id="deleteTaskBtn2" style="color:#dc2626; border-color:#dc2626; width:100%; margin-top:12px;">Delete Task</button>
+          </div>
         </div>
       </div>
       <div id="projectDetailsForm" class="details-form" style="display:none;">
@@ -2564,6 +2656,9 @@
         els.detailsEmpty.style.display = 'none';
         els.detailsForm.style.display = 'block';
         els.projectDetailsForm.style.display = 'none';
+        // Reset "More fields" to collapsed on mobile
+        document.getElementById('detailMoreToggle').classList.remove('open');
+        document.getElementById('detailMoreBody').classList.remove('open');
         els.detailTitle.value = task.title;
         els.detailNotes.value = task.notes || '';
         els.detailStart.value = task.start || '';
@@ -3065,6 +3160,17 @@
     };
     els.saveTaskBtn.onclick = saveDetail;
     els.deleteTaskBtn.onclick = deleteTask;
+
+    // Wire up deleteTaskBtn2 (mobile "More fields" delete)
+    document.getElementById('deleteTaskBtn2').onclick = deleteTask;
+
+    // "More fields" toggle
+    document.getElementById('detailMoreToggle').onclick = () => {
+      const toggle = document.getElementById('detailMoreToggle');
+      const body = document.getElementById('detailMoreBody');
+      toggle.classList.toggle('open');
+      body.classList.toggle('open');
+    };
     els.saveProjectBtn.onclick = saveProjectDetail;
     els.deleteProjectBtn.onclick = () => {
       if (state.ui.selectedProjectId) deleteProject(state.ui.selectedProjectId);
@@ -3312,6 +3418,7 @@
     }
 
     mobileBackdrop.onclick = () => {
+      if (selectedTaskId) saveDetail();
       mobileDismissDetail();
       selectedTaskId = null;
     };
@@ -3324,8 +3431,9 @@
       els.settingsModal.classList.add('open');
     };
 
-    // Detail sheet done button
+    // Detail sheet done button — auto-save before dismissing
     document.getElementById('mobileCloseDetails').onclick = () => {
+      if (selectedTaskId) saveDetail();
       mobileDismissDetail();
       selectedTaskId = null;
     };

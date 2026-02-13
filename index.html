@@ -103,162 +103,309 @@
     }
 
     /* -- Mobile-only elements (hidden on desktop) -- */
-    .bottom-nav {
-      display: none;
-    }
-    .mobile-close-btn {
-      display: none;
-    }
-    .mobile-nav-btns {
-      display: none;
-    }
-    .mobile-panel-header {
-      display: none;
-    }
-    .sheet-handle {
-      display: none;
-    }
+    .bottom-nav, .mobile-close-btn, .mobile-nav-btns, .mobile-panel-header,
+    .sheet-handle, .mobile-backdrop, .mobile-back-btn, .mobile-fab,
+    .mobile-toolbar-row { display: none; }
     .content-title {
       display: none;
       margin: 0;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 700;
       font-family: 'IBM Plex Sans', sans-serif;
       letter-spacing: -0.5px;
       color: var(--ink);
     }
-    .mobile-backdrop {
-      display: none;
-    }
 
     @media (max-width: 1020px) {
-      .app {
-        grid-template-columns: 1fr;
-        padding: 12px;
-      }
-      .panel, .details {
-        order: 1;
-      }
-      .resizer {
-        display: none;
-      }
+      .app { grid-template-columns: 1fr; padding: 12px; }
+      .panel, .details { order: 1; }
+      .resizer { display: none; }
     }
 
     @media (max-width: 900px) {
-      /* --- Header: minimal, just logo + date --- */
-      header {
-        padding: 10px 16px;
-        padding-top: calc(10px + env(safe-area-inset-top));
-        gap: 8px;
-      }
-      .header-actions {
-        gap: 6px;
-      }
-      .header-actions > .btn,
-      .header-actions > #syncBtn,
-      .header-actions > #randomTaskBtn,
-      .header-actions > #settingsBtn,
-      .header-actions > #newTaskBtn,
-      .header-actions > #scoreLabel,
-      .header-actions > #timerChip,
-      .header-actions > #scopeSelect {
-        display: none;
-      }
-      .header-actions .chip {
-        font-size: 12px;
-        padding: 4px 10px;
-      }
-      .mobile-nav-btns {
-        display: none;
-      }
+      /* ===== THINGS-STYLE SCREEN NAVIGATION =====
+         Screen 1 (Home): sidebar panel = fullscreen home
+         Screen 2 (Task List): content area = fullscreen
+         Screen 3 (Detail): slide-up sheet over task list
+      ============================================= */
 
-      /* --- Content title (Things-style big title) --- */
-      .content-title {
-        display: block;
-      }
+      /* --- Hide desktop header entirely --- */
+      header { display: none; }
 
-      /* --- App grid: single column --- */
+      /* --- App: no grid, just stacked screens --- */
       .app {
-        grid-template-columns: 1fr;
-        padding: 8px 8px 80px 8px;
-        gap: 8px;
+        display: block;
+        padding: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        background: var(--bg);
       }
       .resizer { display: none; }
 
-      /* --- Mobile panel header --- */
+      /* ===== SCREEN 1: HOME (sidebar panel) ===== */
+      .panel {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        background: var(--bg);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0 16px 32px;
+        padding-top: calc(16px + env(safe-area-inset-top));
+        padding-bottom: calc(32px + env(safe-area-inset-bottom));
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        flex-direction: column;
+        gap: 20px;
+        transition: transform 0.3s ease;
+      }
+      .panel.screen-hidden {
+        transform: translateX(-100%);
+        pointer-events: none;
+      }
       .mobile-panel-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 12px;
+        margin-bottom: 4px;
       }
       .mobile-panel-title {
         margin: 0;
-        font-size: 22px;
+        font-size: 32px;
         font-weight: 700;
         font-family: 'IBM Plex Sans', sans-serif;
+        letter-spacing: -0.5px;
       }
       .mobile-close-btn {
         display: flex;
         min-height: 44px;
-        padding: 10px 16px;
+        padding: 10px 14px;
         font-weight: 600;
-        color: var(--accent);
+        font-size: 14px;
+        color: var(--muted);
         border-color: transparent;
+        background: transparent;
       }
-
-      /* --- Sidebar: fullscreen slide-over --- */
-      .panel {
-        display: none;
-        min-height: auto;
+      .panel .mobile-panel-header .mobile-close-btn {
+        /* Settings gear on home screen */
+        color: var(--muted);
       }
-      .panel.mobile-open {
-        display: flex;
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 40;
-        background: var(--bg);
-        overflow-y: auto;
-        padding: 20px 16px;
-        padding-top: calc(20px + env(safe-area-inset-top));
-        border-radius: 0;
-        border: none;
-        box-shadow: none;
-      }
-      .panel.mobile-open .nav-item,
-      .panel.mobile-open .project-item {
-        padding: 14px 12px;
+      .panel .nav-item,
+      .panel .project-item {
+        padding: 14px 14px;
         font-size: 16px;
         min-height: 48px;
         border-radius: 12px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
       }
-      .panel.mobile-open .pill {
+      .panel .nav-item.active,
+      .panel .project-item.active {
+        border-color: var(--accent);
+        box-shadow: 0 2px 8px rgba(31,111,235,0.1);
+      }
+      .panel .pill {
         font-size: 13px;
       }
-
-      /* --- Details: slide-up sheet --- */
-      .details {
-        display: none;
-        min-height: auto;
+      .panel .section-title {
+        font-size: 13px;
+        padding-bottom: 4px;
       }
+      .panel .icon-btn { opacity: 1; }
+
+      /* ===== SCREEN 2: TASK LIST (content area) ===== */
+      .content {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 21;
+        background: var(--bg);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0 16px 100px;
+        padding-top: calc(16px + env(safe-area-inset-top));
+        flex-direction: column;
+        gap: 12px;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        animation: screenSlideIn 0.3s ease;
+      }
+      .content.screen-visible {
+        display: flex;
+      }
+      @keyframes screenSlideIn {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+      }
+
+      /* Back button */
+      .mobile-back-btn {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        border: none;
+        background: transparent;
+        color: var(--accent);
+        font-size: 16px;
+        font-weight: 500;
+        padding: 8px 0;
+        min-height: 44px;
+        cursor: pointer;
+        align-self: flex-start;
+      }
+      .mobile-back-btn svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* Content title */
+      .content-title {
+        display: block;
+        font-size: 32px;
+        margin-bottom: 4px;
+      }
+
+      /* Mobile toolbar row: just search icon + scope on task list */
+      .mobile-toolbar-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+      .mobile-toolbar-row button {
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        padding: 8px;
+        min-height: 44px;
+        min-width: 44px;
+        cursor: pointer;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+      }
+      .mobile-toolbar-row button:active {
+        background: rgba(31,111,235,0.06);
+      }
+      .mobile-toolbar-row button svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* Hide desktop toolbar completely, use mobile toolbar row */
+      .toolbar { display: none; }
+      .toolbar.mobile-search-open {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .toolbar.mobile-search-open input,
+      .toolbar.mobile-search-open select,
+      .toolbar.mobile-search-open .btn {
+        min-width: 0;
+        width: 100%;
+        flex: 1 1 100%;
+        font-size: 15px;
+        padding: 12px;
+        min-height: 44px;
+        border-radius: 10px;
+      }
+      .toolbar.mobile-search-open .toolbar-extras,
+      .toolbar.mobile-search-open #quickTaskProject,
+      .toolbar.mobile-search-open #quickAddBtn,
+      .toolbar.mobile-search-open #quickTaskTitle {
+        display: none;
+      }
+      .toolbar.mobile-search-open .toolbar-filters {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+      }
+
+      /* --- Task cards: touch friendly --- */
+      .task-card {
+        padding: 14px 16px;
+        gap: 12px;
+        min-height: 52px;
+        border-radius: 12px;
+      }
+      .task-title { font-size: 16px; }
+      .task-meta { font-size: 13px; gap: 8px; }
+      .checkbox {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        margin-top: 1px;
+      }
+      .order-actions .btn.ghost { display: none; }
+      .order-actions { gap: 4px; }
+      .mini-btn {
+        min-width: 36px;
+        min-height: 36px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+      }
+
+      /* --- Floating Action Button (Things-style magic plus) --- */
+      .mobile-fab {
+        display: flex;
+        position: fixed;
+        bottom: 24px;
+        right: 20px;
+        bottom: calc(24px + env(safe-area-inset-bottom));
+        z-index: 25;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        box-shadow: 0 4px 16px rgba(31,111,235,0.35);
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .mobile-fab:active {
+        transform: scale(0.92);
+        box-shadow: 0 2px 8px rgba(31,111,235,0.4);
+      }
+      .mobile-fab svg {
+        width: 26px;
+        height: 26px;
+      }
+
+      /* ===== SCREEN 3: DETAIL (slide-up sheet) ===== */
+      .details { display: none; min-height: auto; }
       .details.mobile-open {
         display: flex;
         position: fixed;
         left: 0; right: 0; bottom: 0;
-        top: 48px;
+        top: 56px;
+        top: calc(56px + env(safe-area-inset-top));
         z-index: 40;
         background: var(--panel);
         overflow-y: auto;
-        padding: 8px 20px 20px;
-        padding-bottom: calc(20px + env(safe-area-inset-bottom));
-        border-radius: 16px 16px 0 0;
+        -webkit-overflow-scrolling: touch;
+        padding: 8px 20px 32px;
+        padding-bottom: calc(32px + env(safe-area-inset-bottom));
+        border-radius: 14px 14px 0 0;
         border: none;
-        box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.12);
-        animation: slideUp 0.25s ease-out;
+        box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.15);
+        animation: slideUp 0.3s ease-out;
+        flex-direction: column;
+        gap: 12px;
       }
-      @keyframes slideUp {
-        from { transform: translateY(100%); }
-        to { transform: translateY(0); }
+      .details.mobile-open .mobile-panel-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
       .sheet-handle {
         display: block;
@@ -266,126 +413,26 @@
         height: 4px;
         border-radius: 2px;
         background: var(--border);
-        margin: 0 auto 4px;
+        margin: 4px auto 8px;
       }
-      .details.mobile-open .mobile-panel-header {
-        flex-direction: column;
-      }
-
-      /* --- Content area --- */
-      .content {
-        padding: 10px;
-        min-height: auto;
-        border: none;
-        box-shadow: none;
-        background: transparent;
-      }
-
-      /* --- Toolbar: compact quick-add row, collapsible extras --- */
-      .toolbar {
-        gap: 8px;
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
-      .toolbar input, .toolbar select, .toolbar .btn {
-        min-width: 0;
-        font-size: 15px;
-        padding: 12px;
-        min-height: 44px;
-        border-radius: 10px;
-      }
-      #quickTaskTitle {
-        flex: 1 1 0;
+      .details.mobile-open .mobile-close-btn {
+        align-self: flex-end;
+        color: var(--accent);
+        font-weight: 600;
         font-size: 16px;
-        min-width: 0;
       }
-      #quickTaskProject {
-        display: none;
-      }
-      #quickAddBtn {
-        flex: 0 0 auto;
-      }
-      .toolbar-extras {
-        display: none;
-        width: 100%;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .toolbar-extras.open {
-        display: flex;
-      }
-      .toolbar-extras select,
-      .toolbar-extras input {
-        width: 100%;
-      }
-      .toolbar-filters {
-        display: none;
-        width: 100%;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .toolbar-filters.open {
-        display: flex;
-      }
-      .toolbar-filters input,
-      .toolbar-filters select,
-      .toolbar-filters .btn {
-        width: 100%;
+      @keyframes slideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
       }
 
-      /* --- Task cards: touch friendly --- */
-      .task-card {
-        padding: 14px;
-        gap: 12px;
-        min-height: 52px;
-      }
-      .task-title {
-        font-size: 15px;
-      }
-      .task-meta {
-        font-size: 13px;
-      }
-      .checkbox {
-        width: 24px;
-        height: 24px;
-        margin-top: 2px;
-      }
-
-      /* --- Modals --- */
-      .modal-content {
-        width: 96vw;
-        max-height: 90vh;
-        overflow-y: auto;
-        padding: 16px;
-      }
-
-      /* --- Task cards: hide edit button, tap whole card --- */
-      .order-actions .btn.ghost {
-        display: none;
-      }
-      .order-actions {
-        gap: 4px;
-      }
-      .mini-btn {
-        min-width: 32px;
-        min-height: 32px;
-        display: grid;
-        place-items: center;
-      }
-
-      /* --- Empty state --- */
-      .empty {
-        padding: 40px 20px;
-        font-size: 15px;
-      }
-
-      /* --- Backdrop for slide-up sheets --- */
+      /* --- Backdrop --- */
       .mobile-backdrop.visible {
         display: block;
         position: fixed;
         inset: 0;
         z-index: 35;
-        background: rgba(17, 19, 22, 0.3);
+        background: rgba(17, 19, 22, 0.35);
         animation: fadeIn 0.2s ease;
       }
       @keyframes fadeIn {
@@ -393,48 +440,26 @@
         to { opacity: 1; }
       }
 
-      /* --- Bottom nav bar --- */
-      .bottom-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 30;
-        background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.98));
-        backdrop-filter: blur(12px);
-        border-top: 1px solid var(--border);
-        padding: 6px 8px;
-        padding-bottom: calc(6px + env(safe-area-inset-bottom));
-        justify-content: space-around;
-        align-items: center;
+      /* --- Modals on mobile --- */
+      .modal-content {
+        width: 96vw;
+        max-height: 88vh;
+        overflow-y: auto;
+        padding: 20px;
+        border-radius: 16px;
       }
-      .bottom-nav button {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
+
+      /* --- Empty state --- */
+      .empty {
+        padding: 48px 24px;
+        font-size: 16px;
         border: none;
         background: transparent;
         color: var(--muted);
-        font-size: 10px;
-        font-weight: 600;
-        padding: 6px 12px;
-        min-width: 56px;
-        min-height: 44px;
-        cursor: pointer;
-        border-radius: 8px;
       }
-      .bottom-nav button:active {
-        background: rgba(31,111,235,0.08);
-      }
-      .bottom-nav button svg {
-        width: 22px;
-        height: 22px;
-      }
-      .bottom-nav button.active {
-        color: var(--accent);
-      }
+
+      /* --- Bottom nav: REMOVED (Things has no tab bar) --- */
+      .bottom-nav { display: none; }
     }
 
     .panel, .details, .content {
@@ -1043,8 +1068,10 @@
   <main class="app">
     <aside class="panel fade-in" id="sidebarPanel">
       <div class="mobile-panel-header">
-        <h2 class="mobile-panel-title">Navigate</h2>
-        <button class="btn mobile-close-btn" id="mobileCloseMenu">Close</button>
+        <h2 class="mobile-panel-title">DayForge</h2>
+        <button class="btn mobile-close-btn" id="mobileCloseMenu">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
       </div>
       <div>
         <div class="section-title">Views</div>
@@ -1062,8 +1089,23 @@
 
     <div class="resizer" id="sidebarResizer" title="Drag to resize"></div>
 
-    <section class="content fade-in">
+    <section class="content fade-in" id="contentScreen">
+      <button class="mobile-back-btn" id="mobileBackBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Lists
+      </button>
       <h1 class="content-title" id="contentTitle">Inbox</h1>
+      <div class="mobile-toolbar-row" id="mobileToolbarRow">
+        <button id="mobileSearchToggle" title="Search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <button id="mobileSettingsBtn" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <button id="mobileSyncBtn" title="Sync">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </button>
+      </div>
       <div class="toolbar" id="mainToolbar">
         <input type="text" id="quickTaskTitle" placeholder="Quick add task…" style="min-width:220px;" />
         <select id="quickTaskProject"></select>
@@ -1094,6 +1136,10 @@
       </div>
       <div class="task-list" id="taskList"></div>
     </section>
+
+    <button class="mobile-fab" id="mobileFab" title="New Task">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
 
     <aside class="details fade-in" id="detailsPanel">
       <div class="mobile-panel-header">
@@ -2096,7 +2142,7 @@
           state.ui.selectedViewId = view.id;
           state.ui.selectedProjectId = null;
           selectedTaskId = null;
-          document.getElementById('sidebarPanel').classList.remove('mobile-open');
+          mobileShowTaskList();
           render();
         };
         els.viewList.appendChild(item);
@@ -2146,7 +2192,7 @@
             state.ui.selectedProjectId = project.id;
             state.ui.selectedViewId = null;
             selectedTaskId = null;
-            document.getElementById('sidebarPanel').classList.remove('mobile-open');
+            mobileShowTaskList();
             render();
           };
           els.projectList.appendChild(item);
@@ -2591,12 +2637,11 @@
     }
 
     function renderDetail() {
-      const isMobile = window.matchMedia('(max-width: 768px)').matches;
+      const isMobileNow = window.matchMedia('(max-width: 900px)').matches;
       const task = state.tasks.find(t => t.id === selectedTaskId);
       const project = state.projects.find(p => p.id === state.ui.selectedProjectId);
-      if (isMobile && (task || project)) {
-        document.getElementById('detailsPanel').classList.add('mobile-open');
-        showBackdrop();
+      if (isMobileNow && (task || project)) {
+        mobileShowDetail();
       }
       if (!task && !project) {
         els.detailsTitle.textContent = 'Task Details';
@@ -3320,68 +3365,136 @@
       };
     }
 
-    // Mobile panel toggles
+    // ===== MOBILE SCREEN NAVIGATION (Things-style) =====
     const sidebarPanel = document.getElementById('sidebarPanel');
+    const contentScreen = document.getElementById('contentScreen');
     const detailsPanel = document.getElementById('detailsPanel');
     const mobileBackdrop = document.getElementById('mobileBackdrop');
-    function closeMobilePanels() {
-      sidebarPanel.classList.remove('mobile-open');
+    const isMobileQuery = window.matchMedia('(max-width: 900px)');
+
+    function isMobile() { return isMobileQuery.matches; }
+
+    // Navigate to task list screen (push from home)
+    function mobileShowTaskList() {
+      if (!isMobile()) return;
+      sidebarPanel.classList.add('screen-hidden');
+      contentScreen.classList.add('screen-visible');
+    }
+
+    // Navigate back to home screen
+    function mobileShowHome() {
+      if (!isMobile()) return;
+      contentScreen.classList.remove('screen-visible');
+      sidebarPanel.classList.remove('screen-hidden');
+      detailsPanel.classList.remove('mobile-open');
+      mobileBackdrop.classList.remove('visible');
+      document.getElementById('mainToolbar').classList.remove('mobile-search-open');
+    }
+
+    // Show detail sheet
+    function mobileShowDetail() {
+      if (!isMobile()) return;
+      detailsPanel.classList.add('mobile-open');
+      mobileBackdrop.classList.add('visible');
+    }
+
+    // Dismiss detail sheet
+    function mobileDismissDetail() {
       detailsPanel.classList.remove('mobile-open');
       mobileBackdrop.classList.remove('visible');
     }
-    function showBackdrop() {
-      if (window.matchMedia('(max-width: 900px)').matches) {
-        mobileBackdrop.classList.add('visible');
-      }
-    }
-    mobileBackdrop.onclick = closeMobilePanels;
-    document.getElementById('mobileMenuBtn').onclick = () => {
-      const opening = !sidebarPanel.classList.contains('mobile-open');
-      closeMobilePanels();
-      if (opening) { sidebarPanel.classList.add('mobile-open'); showBackdrop(); }
-    };
-    document.getElementById('mobileDetailsBtn').onclick = () => {
-      const opening = !detailsPanel.classList.contains('mobile-open');
-      closeMobilePanels();
-      if (opening) { detailsPanel.classList.add('mobile-open'); showBackdrop(); }
-    };
-    document.getElementById('mobileCloseMenu').onclick = closeMobilePanels;
-    document.getElementById('mobileCloseDetails').onclick = closeMobilePanels;
 
-    // Bottom nav bar handlers
-    document.getElementById('bnMenu').onclick = () => {
-      const opening = !sidebarPanel.classList.contains('mobile-open');
-      closeMobilePanels();
-      if (opening) { sidebarPanel.classList.add('mobile-open'); showBackdrop(); }
+    mobileBackdrop.onclick = mobileDismissDetail;
+
+    // Back button
+    document.getElementById('mobileBackBtn').onclick = mobileShowHome;
+
+    // Settings button on home (gear icon)
+    document.getElementById('mobileCloseMenu').onclick = () => {
+      els.settingsModal.classList.add('open');
     };
-    document.getElementById('bnSearch').onclick = () => {
-      closeMobilePanels();
-      const filters = document.getElementById('toolbarFilters');
-      filters.classList.toggle('open');
-      if (filters.classList.contains('open')) {
+
+    // Detail sheet done button
+    document.getElementById('mobileCloseDetails').onclick = mobileDismissDetail;
+
+    // FAB — add a new task
+    document.getElementById('mobileFab').onclick = () => {
+      if (!isMobile()) return;
+      // Create a new task inline
+      const newTask = {
+        id: uid(),
+        title: '',
+        notes: '',
+        status: 'next',
+        linger: 'flexible',
+        repeat: 'none',
+        repeatSpawned: false,
+        repeatEveryMonths: 1,
+        durationMinutes: null,
+        actualMinutes: null,
+        progressPercent: null,
+        progressDone: null,
+        progressTotal: null,
+        progressUnits: '',
+        start: '',
+        due: '',
+        tags: [],
+        flagged: false,
+        context: '',
+        projectId: state.ui.selectedProjectId || null,
+        phaseId: '',
+        created: new Date().toISOString(),
+        completed: null,
+        inboxProcessed: Boolean(state.ui.selectedProjectId),
+        inboxProcessedAt: ''
+      };
+      state.tasks.push(newTask);
+      selectedTaskId = newTask.id;
+      render();
+      // Open detail sheet and focus title
+      mobileShowDetail();
+      setTimeout(() => {
+        const titleInput = document.getElementById('detailTitle');
+        if (titleInput) titleInput.focus();
+      }, 350);
+    };
+
+    // Mobile toolbar row buttons
+    document.getElementById('mobileSearchToggle').onclick = () => {
+      const toolbar = document.getElementById('mainToolbar');
+      toolbar.classList.toggle('mobile-search-open');
+      if (toolbar.classList.contains('mobile-search-open')) {
         setTimeout(() => els.searchInput.focus(), 100);
       }
     };
-    document.getElementById('bnAdd').onclick = () => {
-      closeMobilePanels();
-      document.getElementById('toolbarFilters').classList.remove('open');
-      els.quickTaskTitle.focus();
-    };
-    document.getElementById('bnSync').onclick = async () => {
-      const btn = document.getElementById('bnSync');
-      const label = btn.querySelector('span') || btn.lastChild;
-      const okPull = await pullFromCloud();
-      const okPush = okPull ? await pushToCloud() : false;
-      if (okPull && okPush && label) {
-        const orig = label.textContent;
-        label.textContent = 'Done!';
-        setTimeout(() => { label.textContent = orig; }, 1500);
-      }
-    };
-    document.getElementById('bnMore').onclick = () => {
-      closeMobilePanels();
+    document.getElementById('mobileSettingsBtn').onclick = () => {
       els.settingsModal.classList.add('open');
     };
+    document.getElementById('mobileSyncBtn').onclick = async () => {
+      const btn = document.getElementById('mobileSyncBtn');
+      btn.style.color = 'var(--accent)';
+      const okPull = await pullFromCloud();
+      const okPush = okPull ? await pushToCloud() : false;
+      btn.style.color = (okPull && okPush) ? 'var(--accent-2)' : '';
+      setTimeout(() => { btn.style.color = ''; }, 1500);
+    };
+
+    // Auto-navigate on screen resize
+    isMobileQuery.addEventListener('change', () => {
+      if (!isMobile()) {
+        // Switching to desktop: reset mobile state
+        sidebarPanel.classList.remove('screen-hidden');
+        contentScreen.classList.remove('screen-visible');
+        mobileDismissDetail();
+        document.getElementById('mainToolbar').classList.remove('mobile-search-open');
+      }
+    });
+
+    // On initial load on mobile, show home screen
+    if (isMobile()) {
+      contentScreen.classList.remove('screen-visible');
+      sidebarPanel.classList.remove('screen-hidden');
+    }
 
     render();
   </script>

@@ -1,0 +1,2940 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DayForge</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23f97316'/%3E%3Cstop offset='100%25' stop-color='%23dc2626'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%23111316'/%3E%3Cpath d='M20 44 L32 16 L44 44 Z' fill='none' stroke='url(%23g)' stroke-width='3.5' stroke-linejoin='round'/%3E%3Cline x1='24' y1='36' x2='40' y2='36' stroke='url(%23g)' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='24' r='3' fill='url(%23g)'/%3E%3C/svg%3E" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
+
+    :root {
+      --bg: #f5f6f7;
+      --bg-alt: #eceff1;
+      --ink: #111316;
+      --muted: #6b7380;
+      --accent: #1f6feb;
+      --accent-2: #16a34a;
+      --panel: #ffffff;
+      --border: #e5e7eb;
+      --shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+      --radius: 12px;
+      --sidebar-w: 280px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 10% 10%, rgba(31,111,235,0.08), transparent 45%),
+                  radial-gradient(circle at 90% 0%, rgba(22,163,74,0.08), transparent 40%),
+                  var(--bg);
+      color: var(--ink);
+      font-family: 'Manrope', 'IBM Plex Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(90deg, rgba(255,255,255,0.92), rgba(255,255,255,0.75));
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 20px;
+      letter-spacing: 0.2px;
+    }
+
+    .logo-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--ink);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      overflow: hidden;
+    }
+    .logo-badge svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .chip.timer-running {
+      border-color: rgba(22, 163, 74, 0.6);
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 10px minmax(0, 1fr) 320px;
+      gap: 16px;
+      padding: 16px 24px 32px;
+    }
+
+    @media (max-width: 1020px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+      .panel, .details {
+        order: 1;
+      }
+      .resizer {
+        display: none;
+      }
+    }
+
+    .panel, .details, .content {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .resizer {
+      width: 10px;
+      cursor: col-resize;
+      border-radius: 10px;
+      background: transparent;
+      position: relative;
+    }
+
+    .resizer::after {
+      content: '';
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      left: 4px;
+      width: 2px;
+      border-radius: 2px;
+      background: var(--border);
+    }
+
+    .panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 70vh;
+    }
+
+    .section-title {
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .panel .section-title {
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: 1.6px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .project-list .section-title {
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 1px;
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .nav-list, .project-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-item, .project-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+    }
+
+    .nav-item.today-alert {
+      border-color: rgba(245, 158, 11, 0.6);
+      background: rgba(245, 158, 11, 0.12);
+      box-shadow: 0 6px 14px rgba(245, 158, 11, 0.18);
+      font-weight: 600;
+    }
+
+    .nav-item:hover, .project-item:hover {
+      background: #fff;
+      border-color: var(--border);
+    }
+
+    .nav-item.active, .project-item.active {
+      background: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(31,111,235,0.12);
+    }
+
+    .project-actions {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s ease, color 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      color: var(--ink);
+    }
+
+    .project-item:hover .icon-btn,
+    .project-item.active .icon-btn {
+      opacity: 1;
+    }
+
+    .pill {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(31,111,235,0.12);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--ink);
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn.ghost {
+      background: transparent;
+    }
+
+    .content {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 70vh;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .toolbar input, .toolbar select {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .task-card.dragging {
+      opacity: 0.5;
+    }
+
+    .task-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(31,111,235,0.14);
+      background: #fafdff;
+    }
+
+    .task-card.blocked {
+      opacity: 0.55;
+      filter: grayscale(0.2);
+    }
+
+    .task-card.future {
+      opacity: 0.6;
+    }
+
+    .task-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .tag {
+      background: rgba(17,19,22,0.06);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+
+    .details {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 70vh;
+    }
+
+    .details input, .details textarea, .details select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .details textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .details-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .details-form .btn {
+      align-self: flex-start;
+    }
+
+    .details-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 16px;
+    }
+
+    .details-actions .btn {
+      width: 100%;
+      padding: 12px 18px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    .section-actions {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .section-heading .remove {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .section-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+
+    .order-actions {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .mini-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 2px 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .mini-btn:hover {
+      color: var(--ink);
+      border-color: var(--accent);
+    }
+
+    .mini-btn.active {
+      background: rgba(31,111,235,0.12);
+      color: var(--accent);
+      border-color: rgba(31,111,235,0.25);
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 16px;
+      margin-top: 6px;
+    }
+
+    .detail-row > * {
+      min-width: 0;
+    }
+
+    .field-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .full-span {
+      grid-column: 1 / -1;
+    }
+
+    .details-form > .field-label {
+      margin-bottom: 6px;
+    }
+
+    .details-form > input,
+    .details-form > textarea,
+    .details-form > .detail-row,
+    .details-form > .details-actions {
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 640px) {
+      .detail-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .empty {
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.5);
+    }
+
+    .fade-in {
+      animation: fadeUp 0.35s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid var(--border);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .checkbox.checked {
+      background: var(--accent-2);
+      border-color: var(--accent-2);
+      color: #fff;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(31,111,235,0.12);
+      color: var(--accent);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 19, 22, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-content {
+      width: min(520px, 92vw);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .score-history {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      font-size: 14px;
+    }
+
+    .score-points {
+      font-weight: 700;
+    }
+
+    .score-points.positive {
+      color: var(--accent-2);
+    }
+
+    .score-points.negative {
+      color: #dc2626;
+    }
+
+    .timer-display {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .timer-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .timer-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .setting-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .radio-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .setting-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .collapsible {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px 12px;
+    }
+
+    .collapsible-toggle {
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--ink);
+      cursor: pointer;
+      padding: 4px 0 8px;
+    }
+
+    .collapsible-body {
+      display: none;
+    }
+
+    .collapsible.open .collapsible-body {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="logo-badge"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f97316"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="#111316"/><path d="M20 44 L32 16 L44 44 Z" fill="none" stroke="url(#fg)" stroke-width="3.5" stroke-linejoin="round"/><line x1="24" y1="36" x2="40" y2="36" stroke="url(#fg)" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="24" r="3" fill="url(#fg)"/></svg></div>
+      DayForge
+    </div>
+    <div class="header-actions">
+      <span class="chip" id="todayLabel"></span>
+      <button class="chip" id="scoreLabel" style="cursor:pointer;">Score 0</button>
+      <button class="chip" id="timerChip" style="cursor:pointer;">Focus 25:00</button>
+      <select id="scopeSelect" class="btn ghost" style="padding-right:30px;">
+        <option value="both">All Tasks</option>
+        <option value="work">Work</option>
+        <option value="personal">Personal</option>
+      </select>
+      <button class="btn ghost" id="syncBtn">Sync</button>
+      <button class="btn ghost" id="randomTaskBtn">Random Task</button>
+      <button class="btn ghost" id="settingsBtn">Settings</button>
+      <button class="btn primary" id="newTaskBtn">New Task</button>
+    </div>
+  </header>
+
+  <main class="app">
+    <aside class="panel fade-in">
+      <div>
+        <div class="section-title">Views</div>
+        <div class="nav-list" id="viewList"></div>
+      </div>
+      <div>
+        <div class="section-title">Projects</div>
+        <div class="project-list" id="projectList"></div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="newProjectName" placeholder="New project name" style="flex:1; padding:10px 12px; border-radius:10px; border:1px solid var(--border);" />
+        <button class="btn" id="newProjectBtn">Add</button>
+      </div>
+    </aside>
+
+    <div class="resizer" id="sidebarResizer" title="Drag to resize"></div>
+
+    <section class="content fade-in">
+      <div class="toolbar">
+        <input type="text" id="quickTaskTitle" placeholder="Quick add task…" style="min-width:220px;" />
+        <select id="quickTaskProject"></select>
+        <select id="quickTaskContext">
+          <option value="">Single tasks: none</option>
+          <option value="work">Single tasks: work</option>
+          <option value="personal">Single tasks: personal</option>
+        </select>
+        <input type="date" id="quickTaskDue" />
+        <select id="quickTaskLinger">
+          <option value="flexible">Flexible</option>
+          <option value="soon">Do Soon</option>
+        </select>
+        <button class="btn primary" id="quickAddBtn">Add Task</button>
+        <input type="text" id="searchInput" placeholder="Search tasks, tags, notes" />
+        <select id="statusFilter">
+          <option value="">All status</option>
+          <option value="next">Next</option>
+          <option value="waiting">Waiting</option>
+          <option value="someday">Someday</option>
+          <option value="done">Done</option>
+        </select>
+        <button class="btn" id="clearFiltersBtn">Clear Filters</button>
+        
+      </div>
+      <div class="task-list" id="taskList"></div>
+    </section>
+
+    <aside class="details fade-in">
+      <div class="section-title" id="detailsTitle">Task Details</div>
+      <div id="detailsEmpty" class="empty">Select a task or project to edit its details.</div>
+      <div id="detailsForm" class="details-form" style="display:none;">
+        <label class="field-label" for="detailTitle">Title</label>
+        <input type="text" id="detailTitle" placeholder="Task title" />
+        <label class="field-label" for="detailNotes">Notes</label>
+        <textarea id="detailNotes" placeholder="Notes, links, context"></textarea>
+        <div class="detail-row">
+          <label class="field-label" for="detailStart">Start date</label>
+          <label class="field-label" for="detailDue">Due date</label>
+          <input type="date" id="detailStart" />
+          <input type="date" id="detailDue" />
+        </div>
+        <div class="detail-row">
+          <label class="field-label" for="detailStatus">Status</label>
+          <label class="field-label" for="detailLinger">Linger policy</label>
+          <select id="detailStatus">
+            <option value="next">Next</option>
+            <option value="waiting">Waiting</option>
+            <option value="someday">Someday</option>
+            <option value="blocked">Blocked</option>
+            <option value="done">Done</option>
+          </select>
+          <select id="detailLinger">
+            <option value="flexible">Flexible</option>
+            <option value="soon">Do Soon</option>
+          </select>
+        </div>
+        <div class="detail-row">
+          <label class="field-label" for="detailRepeat">Repeat</label>
+          <div></div>
+          <select id="detailRepeat" class="full-span">
+            <option value="none">Does not repeat</option>
+            <option value="daily">Repeats daily</option>
+            <option value="weekly">Repeats weekly</option>
+            <option value="monthly">Repeats monthly</option>
+          </select>
+        </div>
+        <div class="detail-row" id="repeatEveryRow">
+          <label class="field-label" for="detailRepeatEvery">Every (months)</label>
+          <div></div>
+          <input type="number" id="detailRepeatEvery" min="1" step="1" placeholder="1" class="full-span" />
+        </div>
+        <div class="detail-row">
+          <label class="field-label" for="detailDurationValue">Duration</label>
+          <label class="field-label" for="detailDurationUnit">Unit</label>
+          <input type="number" id="detailDurationValue" min="0" step="1" placeholder="Optional" />
+          <select id="detailDurationUnit">
+            <option value="minutes">Minutes</option>
+            <option value="hours">Hours</option>
+          </select>
+        </div>
+        <div class="detail-row">
+          <label class="field-label" for="detailActualMinutes">Actual minutes</label>
+          <div></div>
+          <input type="number" id="detailActualMinutes" min="0" step="1" placeholder="Optional" class="full-span" />
+        </div>
+        <div class="collapsible">
+          <button class="collapsible-toggle" type="button" id="progressToggle">Progress</button>
+          <div class="collapsible-body" id="progressBody">
+            <div class="detail-row">
+              <label class="field-label" for="detailProgressPercent">Progress %</label>
+              <label class="field-label" for="detailProgressUnits">Units label</label>
+              <input type="number" id="detailProgressPercent" min="0" max="100" step="1" placeholder="0-100" />
+              <input type="text" id="detailProgressUnits" placeholder="tiles, pages, etc." />
+            </div>
+            <div class="detail-row">
+              <label class="field-label" for="detailProgressDone">Done</label>
+              <label class="field-label" for="detailProgressTotal">Total</label>
+              <input type="number" id="detailProgressDone" min="0" step="1" placeholder="0" />
+              <input type="number" id="detailProgressTotal" min="0" step="1" placeholder="0" />
+            </div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <label class="field-label" for="detailTags">Tags</label>
+          <div></div>
+          <input type="text" id="detailTags" class="full-span" placeholder="tags (comma separated)" />
+        </div>
+        <div class="detail-row">
+          <label class="field-label" for="detailProject">Project</label>
+          <label class="field-label" for="detailFlagged">Flag</label>
+          <select id="detailProject"></select>
+          <select id="detailFlagged">
+            <option value="false">Not flagged</option>
+            <option value="true">Flagged</option>
+          </select>
+        </div>
+        <div class="detail-row">
+          <label class="field-label" for="detailPhase">Project section</label>
+          <div></div>
+          <select id="detailPhase" class="full-span"></select>
+        </div>
+        <div class="detail-row">
+          <label class="field-label" for="detailContext">Single task list</label>
+          <select id="detailContext" class="full-span">
+            <option value="">Single tasks: none</option>
+            <option value="work">Single tasks: work</option>
+            <option value="personal">Single tasks: personal</option>
+          </select>
+        </div>
+        <div class="details-actions">
+          <button class="btn primary" id="saveTaskBtn">Save Task</button>
+          <button class="btn" id="deleteTaskBtn">Delete Task</button>
+        </div>
+      </div>
+      <div id="projectDetailsForm" class="details-form" style="display:none;">
+        <label class="field-label" for="projectName">Project name</label>
+        <input type="text" id="projectName" placeholder="Project name" />
+        <label class="field-label" for="projectNotes">Project notes</label>
+        <textarea id="projectNotes" placeholder="Project notes, goals, context"></textarea>
+        <label class="field-label">Sections</label>
+        <div class="detail-row">
+          <input type="text" id="projectSectionName" placeholder="Add a section" class="full-span" />
+        </div>
+        <button class="btn" id="addProjectSectionBtn">Add Section</button>
+        <div class="detail-row">
+          <label class="field-label" for="projectArea">Area</label>
+          <label class="field-label" for="projectStatus">Project status</label>
+          <select id="projectArea">
+            <option value="work">Work</option>
+            <option value="personal">Personal</option>
+            <option value="general">General</option>
+          </select>
+          <select id="projectStatus">
+            <option value="active">Active</option>
+            <option value="on-hold">On Hold</option>
+            <option value="someday">Someday</option>
+          </select>
+        </div>
+        <div class="detail-row">
+          <label class="field-label" for="projectPriority">Priority</label>
+          <div></div>
+          <select id="projectPriority" class="full-span">
+            <option value="normal">Normal</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <div class="detail-row">
+          <label class="field-label" for="projectStart">Start date</label>
+          <label class="field-label" for="projectDue">Due date</label>
+          <input type="date" id="projectStart" />
+          <input type="date" id="projectDue" />
+        </div>
+        <div class="details-actions">
+          <button class="btn primary" id="saveProjectBtn">Save Project</button>
+          <button class="btn" id="deleteProjectBtn">Delete Project</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="modal" id="settingsModal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="section-title">Settings</div>
+        <button class="btn ghost" id="closeSettingsBtn">Close</button>
+      </div>
+      <div class="setting-row">
+        <label class="field-label" for="settingsDefaultScope">Default scope</label>
+        <select id="settingsDefaultScope">
+          <option value="both">All Tasks</option>
+          <option value="work">Work</option>
+          <option value="personal">Personal</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label class="field-label" for="settingsDefaultView">Default view</label>
+        <select id="settingsDefaultView"></select>
+      </div>
+      <div class="setting-row">
+        <label class="field-label">Visibility</label>
+        <label><input type="checkbox" id="settingsHideCompleted" /> Hide completed tasks (except Completed view)</label>
+        <label><input type="checkbox" id="settingsShowEmptySections" /> Show empty sections in project view</label>
+        <label><input type="checkbox" id="settingsShowDuration" /> Show duration badge on tasks</label>
+        <label><input type="checkbox" id="settingsShowEmptyViews" /> Show views with 0 tasks</label>
+        <label><input type="checkbox" id="settingsShowCompletedView" /> Show Completed view</label>
+      </div>
+      <div class="setting-row">
+        <label class="field-label" for="settingsBlobUrl">Azure Blob SAS URL</label>
+        <input type="text" id="settingsBlobUrl" placeholder="https://.../todo.json?<SAS>" />
+      </div>
+      <div class="setting-row">
+        <label class="field-label" for="settingsAutoSyncMinutes">Auto-sync (minutes)</label>
+        <input type="number" id="settingsAutoSyncMinutes" min="0" step="1" placeholder="0 = off" />
+      </div>
+      <div class="setting-row">
+        <label class="field-label">Cloud actions</label>
+        <div class="setting-actions">
+          <button class="btn" id="pullCloudBtn">Pull (Merge)</button>
+          <button class="btn" id="pushCloudBtn">Push (Upload)</button>
+        </div>
+        <div class="chip" id="settingsLastSync">Last sync: never</div>
+      </div>
+      <div class="setting-row">
+        <label class="field-label">Data</label>
+        <div class="setting-actions">
+          <button class="btn" id="exportBtn">Export JSON</button>
+          <button class="btn" id="importBtn">Import JSON</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="resetSettingsBtn">Reset</button>
+        <button class="btn primary" id="saveSettingsBtn">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="importModal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="section-title">Import</div>
+        <button class="btn ghost" id="closeImportBtn">Close</button>
+      </div>
+      <div class="setting-row">
+        <label class="field-label">Import mode</label>
+        <label class="radio-row"><input type="radio" name="importMode" value="merge" checked /> Merge (recommended)</label>
+        <label class="radio-row"><input type="radio" name="importMode" value="overwrite" /> Overwrite existing</label>
+        <label class="radio-row"><input type="radio" name="importMode" value="duplicate" /> Import as new</label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn primary" id="confirmImportBtn">Import File</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="scoreModal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="section-title">Score History</div>
+        <button class="btn ghost" id="closeScoreBtn">Close</button>
+      </div>
+      <div id="scoreHistoryList" class="score-history"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="timerModal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="section-title">Pomodoro</div>
+        <button class="btn ghost" id="closeTimerBtn">Close</button>
+      </div>
+      <div class="timer-display" id="timerDisplay">25:00</div>
+      <div class="timer-meta">
+        <div id="timerModeLabel">Focus Session</div>
+        <div id="timerTaskLabel">No task attached</div>
+      </div>
+      <div class="timer-actions">
+        <button class="btn primary" id="timerStartBtn">Start</button>
+        <button class="btn" id="timerResetBtn">Reset</button>
+        <button class="btn ghost" id="timerFocusBtn">Focus</button>
+        <button class="btn ghost" id="timerBreakBtn">Break</button>
+        <button class="btn ghost" id="timerAttachBtn">Attach Selected Task</button>
+      </div>
+      <div class="timer-actions">
+        <button class="btn ghost" data-focus-minutes="10">Focus 10</button>
+        <button class="btn ghost" data-focus-minutes="15">Focus 15</button>
+        <button class="btn ghost" data-focus-minutes="25">Focus 25</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'dayforge.v1';
+    // Migrate from old storage key
+    if (!localStorage.getItem('dayforge.v1') && localStorage.getItem('atlas.todo.v1')) {
+      localStorage.setItem('dayforge.v1', localStorage.getItem('atlas.todo.v1'));
+    }
+    const INBOX_PROCESS_POINTS = 500;
+    const INBOX_PENALTY_POINTS = 300;
+    const FOCUS_POINTS_PER_MIN = 10;
+
+    const views = [
+      { id: 'inbox', label: 'Inbox', filter: task => !task.projectId && !task.context && task.status !== 'done' },
+      { id: 'overdue', label: 'Overdue', filter: task => task.due && task.due < todayStr() && task.status !== 'done' },
+      { id: 'today', label: 'Today', filter: task => task.due === todayStr() && task.status !== 'done' },
+      { id: 'flagged', label: 'Flagged', filter: task => task.flagged && task.status !== 'done' },
+      { id: 'single-work', label: 'Single Tasks — Work', filter: task => !task.projectId && task.context === 'work' && task.status !== 'done' },
+      { id: 'single-personal', label: 'Single Tasks — Personal', filter: task => !task.projectId && task.context === 'personal' && task.status !== 'done' },
+      { id: 'completed', label: 'Completed', filter: task => task.status === 'done' },
+      { id: 'upcoming', label: 'Upcoming', filter: task => task.due && task.due > todayStr() && task.status !== 'done' },
+      { id: 'do-soon', label: 'Do Soon', filter: task => task.linger === 'soon' && task.status !== 'done' }
+    ];
+
+    const els = {
+      todayLabel: document.getElementById('todayLabel'),
+      viewList: document.getElementById('viewList'),
+      projectList: document.getElementById('projectList'),
+      taskList: document.getElementById('taskList'),
+      searchInput: document.getElementById('searchInput'),
+      statusFilter: document.getElementById('statusFilter'),
+      clearFiltersBtn: document.getElementById('clearFiltersBtn'),
+      randomTaskBtn: document.getElementById('randomTaskBtn'),
+      newProjectBtn: document.getElementById('newProjectBtn'),
+      newProjectName: document.getElementById('newProjectName'),
+      newTaskBtn: document.getElementById('newTaskBtn'),
+      quickTaskTitle: document.getElementById('quickTaskTitle'),
+      quickTaskProject: document.getElementById('quickTaskProject'),
+      quickTaskContext: document.getElementById('quickTaskContext'),
+      quickTaskDue: document.getElementById('quickTaskDue'),
+      quickTaskLinger: document.getElementById('quickTaskLinger'),
+      quickAddBtn: document.getElementById('quickAddBtn'),
+      detailsEmpty: document.getElementById('detailsEmpty'),
+      detailsForm: document.getElementById('detailsForm'),
+      detailsTitle: document.getElementById('detailsTitle'),
+      scoreLabel: document.getElementById('scoreLabel'),
+      timerChip: document.getElementById('timerChip'),
+      detailTitle: document.getElementById('detailTitle'),
+      detailNotes: document.getElementById('detailNotes'),
+      detailStart: document.getElementById('detailStart'),
+      detailDue: document.getElementById('detailDue'),
+      detailStatus: document.getElementById('detailStatus'),
+      detailLinger: document.getElementById('detailLinger'),
+      detailRepeat: document.getElementById('detailRepeat'),
+      detailRepeatEvery: document.getElementById('detailRepeatEvery'),
+      repeatEveryRow: document.getElementById('repeatEveryRow'),
+      detailDurationValue: document.getElementById('detailDurationValue'),
+      detailDurationUnit: document.getElementById('detailDurationUnit'),
+      detailActualMinutes: document.getElementById('detailActualMinutes'),
+      detailProgressPercent: document.getElementById('detailProgressPercent'),
+      detailProgressUnits: document.getElementById('detailProgressUnits'),
+      detailProgressDone: document.getElementById('detailProgressDone'),
+      detailProgressTotal: document.getElementById('detailProgressTotal'),
+      progressToggle: document.getElementById('progressToggle'),
+      progressBody: document.getElementById('progressBody'),
+      detailTags: document.getElementById('detailTags'),
+      detailProject: document.getElementById('detailProject'),
+      detailPhase: document.getElementById('detailPhase'),
+      detailFlagged: document.getElementById('detailFlagged'),
+      detailContext: document.getElementById('detailContext'),
+      saveTaskBtn: document.getElementById('saveTaskBtn'),
+      deleteTaskBtn: document.getElementById('deleteTaskBtn'),
+      projectDetailsForm: document.getElementById('projectDetailsForm'),
+      projectName: document.getElementById('projectName'),
+      projectNotes: document.getElementById('projectNotes'),
+      projectSectionName: document.getElementById('projectSectionName'),
+      addProjectSectionBtn: document.getElementById('addProjectSectionBtn'),
+      projectArea: document.getElementById('projectArea'),
+      projectStatus: document.getElementById('projectStatus'),
+      projectPriority: document.getElementById('projectPriority'),
+      projectStart: document.getElementById('projectStart'),
+      projectDue: document.getElementById('projectDue'),
+      saveProjectBtn: document.getElementById('saveProjectBtn'),
+      deleteProjectBtn: document.getElementById('deleteProjectBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      importBtn: document.getElementById('importBtn'),
+      scopeSelect: document.getElementById('scopeSelect'),
+      settingsBtn: document.getElementById('settingsBtn'),
+      settingsModal: document.getElementById('settingsModal'),
+      closeSettingsBtn: document.getElementById('closeSettingsBtn'),
+      saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+      resetSettingsBtn: document.getElementById('resetSettingsBtn'),
+      settingsDefaultScope: document.getElementById('settingsDefaultScope'),
+      settingsDefaultView: document.getElementById('settingsDefaultView'),
+      settingsHideCompleted: document.getElementById('settingsHideCompleted'),
+      settingsShowEmptySections: document.getElementById('settingsShowEmptySections'),
+      settingsShowDuration: document.getElementById('settingsShowDuration'),
+      settingsShowEmptyViews: document.getElementById('settingsShowEmptyViews'),
+      settingsShowCompletedView: document.getElementById('settingsShowCompletedView'),
+      settingsBlobUrl: document.getElementById('settingsBlobUrl'),
+      settingsAutoSyncMinutes: document.getElementById('settingsAutoSyncMinutes'),
+      pullCloudBtn: document.getElementById('pullCloudBtn'),
+      pushCloudBtn: document.getElementById('pushCloudBtn'),
+      settingsLastSync: document.getElementById('settingsLastSync'),
+      syncBtn: document.getElementById('syncBtn'),
+      importModal: document.getElementById('importModal'),
+      closeImportBtn: document.getElementById('closeImportBtn'),
+      confirmImportBtn: document.getElementById('confirmImportBtn'),
+      scoreModal: document.getElementById('scoreModal'),
+      closeScoreBtn: document.getElementById('closeScoreBtn'),
+      scoreHistoryList: document.getElementById('scoreHistoryList'),
+      timerModal: document.getElementById('timerModal'),
+      closeTimerBtn: document.getElementById('closeTimerBtn'),
+      timerDisplay: document.getElementById('timerDisplay'),
+      timerModeLabel: document.getElementById('timerModeLabel'),
+      timerTaskLabel: document.getElementById('timerTaskLabel'),
+      timerStartBtn: document.getElementById('timerStartBtn'),
+      timerResetBtn: document.getElementById('timerResetBtn'),
+      timerFocusBtn: document.getElementById('timerFocusBtn'),
+      timerBreakBtn: document.getElementById('timerBreakBtn'),
+      timerAttachBtn: document.getElementById('timerAttachBtn'),
+      sidebarResizer: document.getElementById('sidebarResizer')
+    };
+
+    const state = loadState();
+    let selectedTaskId = null;
+    let autoSyncTimer = null;
+    let autoSyncMinutes = 0;
+    let pomodoroInterval = null;
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try {
+          return normalizeState(JSON.parse(raw));
+        } catch (err) {
+          console.warn('Failed to parse state', err);
+        }
+      }
+      return normalizeState({
+        projects: [],
+        tasks: [],
+        ui: {
+          selectedViewId: 'inbox',
+          selectedProjectId: null,
+          search: '',
+          statusFilter: '',
+          scope: 'both'
+        }
+      });
+    }
+
+    function normalizeState(input) {
+      const safe = input && typeof input === 'object' ? input : {};
+      const projects = Array.isArray(safe.projects) ? safe.projects : [];
+      const tasks = Array.isArray(safe.tasks) ? safe.tasks : [];
+      const ui = safe.ui && typeof safe.ui === 'object' ? safe.ui : {};
+      const validRepeat = new Set(['none', 'daily', 'weekly', 'monthly']);
+      const validProjectArea = new Set(['work', 'personal', 'general']);
+      const validProjectStatus = new Set(['active', 'on-hold', 'someday']);
+      const validScope = new Set(['both', 'work', 'personal']);
+      const validView = new Set(views.map(v => v.id));
+      const nowIso = new Date().toISOString();
+      let scope = validScope.has(ui.scope) ? ui.scope : 'both';
+      if (!validScope.has(ui.scope)) {
+        if (ui.hideWork && !ui.hidePersonal) scope = 'personal';
+        if (ui.hidePersonal && !ui.hideWork) scope = 'work';
+      }
+      return {
+        projects: projects.map(p => ({
+          id: p.id || uid(),
+          name: p.name || 'Untitled project',
+          color: p.color || '#e4572e',
+          archived: Boolean(p.archived),
+          area: validProjectArea.has(p.area) ? p.area : 'general',
+          status: validProjectStatus.has(p.status) ? p.status : 'active',
+          priority: p.priority === 'high' ? 'high' : 'normal',
+          sequentialSections: Array.isArray(p.sequentialSections)
+            ? p.sequentialSections.map(x => String(x).trim()).filter(Boolean)
+            : [],
+          sectionOrder: Array.isArray(p.sectionOrder)
+            ? p.sectionOrder.map(x => String(x).trim()).filter(Boolean)
+            : [],
+          phases: Array.isArray(p.phases)
+            ? p.phases.map(x => String(x).trim()).filter(Boolean)
+            : [],
+          notes: p.notes || '',
+          start: p.start || '',
+          due: p.due || '',
+          updatedAt: p.updatedAt || nowIso
+        })),
+        tasks: tasks.map(t => ({
+          id: t.id || uid(),
+          title: t.title || 'Untitled task',
+          notes: t.notes || '',
+          status: t.status || 'next',
+          linger: t.linger || 'flexible',
+          repeat: validRepeat.has(t.repeat) ? t.repeat : 'none',
+          repeatSpawned: Boolean(t.repeatSpawned),
+          repeatEveryMonths: Number.isFinite(Number(t.repeatEveryMonths)) && Number(t.repeatEveryMonths) > 0
+            ? Math.round(Number(t.repeatEveryMonths))
+            : 1,
+          durationMinutes: Number.isFinite(Number(t.durationMinutes)) && Number(t.durationMinutes) > 0
+            ? Math.round(Number(t.durationMinutes))
+            : null,
+          actualMinutes: Number.isFinite(Number(t.actualMinutes)) && Number(t.actualMinutes) > 0
+            ? Math.round(Number(t.actualMinutes))
+            : null,
+          progressPercent: Number.isFinite(Number(t.progressPercent)) && Number(t.progressPercent) > 0
+            ? Math.min(100, Math.round(Number(t.progressPercent)))
+            : null,
+          progressDone: Number.isFinite(Number(t.progressDone)) && Number(t.progressDone) > 0
+            ? Math.round(Number(t.progressDone))
+            : null,
+          progressTotal: Number.isFinite(Number(t.progressTotal)) && Number(t.progressTotal) > 0
+            ? Math.round(Number(t.progressTotal))
+            : null,
+          progressUnits: t.progressUnits ? String(t.progressUnits) : '',
+          start: t.start || '',
+          due: t.due || '',
+          tags: Array.isArray(t.tags) ? t.tags : [],
+          flagged: Boolean(t.flagged),
+          context: t.context || '',
+          projectId: t.projectId || null,
+          phaseId: t.phaseId || '',
+          created: t.created || nowIso,
+          completed: t.completed || null,
+          updatedAt: t.updatedAt || nowIso,
+          order: Number.isFinite(Number(t.order)) ? Number(t.order) : null,
+          blockedPrevStatus: t.blockedPrevStatus || '',
+          pointsAwarded: Boolean(t.pointsAwarded),
+          pointsEarned: Number.isFinite(Number(t.pointsEarned)) ? Number(t.pointsEarned) : 0,
+          inboxProcessed: Boolean(t.inboxProcessed),
+          inboxProcessedAt: t.inboxProcessedAt || ''
+        })),
+        ui: {
+          selectedViewId: ui.selectedViewId || 'inbox',
+          selectedProjectId: ui.selectedProjectId || null,
+          search: ui.search || '',
+          statusFilter: ui.statusFilter || '',
+          scope,
+          settings: {
+            defaultScope: validScope.has(ui?.settings?.defaultScope) ? ui.settings.defaultScope : 'both',
+            defaultView: validView.has(ui?.settings?.defaultView) ? ui.settings.defaultView : 'inbox',
+            hideCompleted: Boolean(ui?.settings?.hideCompleted),
+            showEmptySections: ui?.settings?.showEmptySections !== false,
+            showDuration: ui?.settings?.showDuration !== false,
+            showEmptyViews: ui?.settings?.showEmptyViews !== false,
+            showCompletedView: ui?.settings?.showCompletedView !== false,
+            blobUrl: ui?.settings?.blobUrl || '',
+            autoSyncMinutes: Number.isFinite(Number(ui?.settings?.autoSyncMinutes)) ? Number(ui.settings.autoSyncMinutes) : 0,
+            lastSyncAt: ui?.settings?.lastSyncAt || ''
+          },
+          score: {
+            total: Number.isFinite(Number(ui?.score?.total)) ? Number(ui.score.total) : 0,
+            history: Array.isArray(ui?.score?.history) ? ui.score.history : [],
+            inboxPenaltyDate: ui?.score?.inboxPenaltyDate || ''
+          },
+          timer: {
+            mode: ui?.timer?.mode === 'break' ? 'break' : 'focus',
+            focusMinutes: Number.isFinite(Number(ui?.timer?.focusMinutes)) ? Number(ui.timer.focusMinutes) : 25,
+            breakMinutes: Number.isFinite(Number(ui?.timer?.breakMinutes)) ? Number(ui.timer.breakMinutes) : 5,
+            remainingSeconds: Number.isFinite(Number(ui?.timer?.remainingSeconds))
+              ? Math.max(0, Number(ui.timer.remainingSeconds))
+              : 25 * 60,
+            running: Boolean(ui?.timer?.running),
+            activeTaskId: ui?.timer?.activeTaskId || null,
+            lastTick: Number.isFinite(Number(ui?.timer?.lastTick)) ? Number(ui.timer.lastTick) : 0
+          },
+          sidebarWidth: Number.isFinite(Number(ui.sidebarWidth)) ? Number(ui.sidebarWidth) : 280
+        }
+      };
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function todayStr() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function uid() {
+      return 'id-' + Math.random().toString(36).slice(2, 10);
+    }
+
+    function taskAgeDays(task) {
+      if (!task.created) return 0;
+      const created = new Date(task.created);
+      if (Number.isNaN(created.getTime())) return 0;
+      const ms = Date.now() - created.getTime();
+      return Math.max(0, Math.floor(ms / 86400000));
+    }
+
+    function isInboxTask(task) {
+      return !task.projectId && !task.context;
+    }
+
+    function addScore(delta) {
+      if (!delta) return;
+      if (!state.ui.score) {
+        state.ui.score = { total: 0, history: [], inboxPenaltyDate: '' };
+      }
+      const score = state.ui.score;
+      score.total = (score.total || 0) + delta;
+      const today = todayStr();
+      const existing = score.history.find(h => h.date === today);
+      if (existing) {
+        existing.points += delta;
+      } else {
+        score.history.push({ date: today, points: delta });
+      }
+    }
+
+    function applyInboxPenaltyIfNeeded() {
+      if (!state.ui.score) {
+        state.ui.score = { total: 0, history: [], inboxPenaltyDate: '' };
+      }
+      const score = state.ui.score;
+      const today = todayStr();
+      if (score.inboxPenaltyDate === today) return;
+      const overdueCount = state.tasks.filter(task => isInboxTask(task) && task.status !== 'done' && taskAgeDays(task) >= 1).length;
+      if (overdueCount > 0) {
+        addScore(-INBOX_PENALTY_POINTS * overdueCount);
+      }
+      score.inboxPenaltyDate = today;
+    }
+
+    function renderScoreHistory() {
+      const history = Array.isArray(state.ui.score?.history) ? [...state.ui.score.history] : [];
+      const list = els.scoreHistoryList;
+      if (!list) return;
+      list.innerHTML = '';
+      if (!history.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No score history yet.';
+        list.appendChild(empty);
+        return;
+      }
+      history.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      history.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'score-row';
+        const date = new Date(item.date);
+        const label = document.createElement('div');
+        label.textContent = Number.isNaN(date.getTime())
+          ? item.date
+          : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        const points = Math.round(Number(item.points) || 0);
+        const value = document.createElement('div');
+        value.className = 'score-points ' + (points >= 0 ? 'positive' : 'negative');
+        value.textContent = `${points >= 0 ? '+' : ''}${points}`;
+        row.appendChild(label);
+        row.appendChild(value);
+        list.appendChild(row);
+      });
+    }
+
+    function nextOrder(projectId, phaseId) {
+      const same = state.tasks.filter(t => t.projectId === projectId && (t.phaseId || '') === (phaseId || ''));
+      const max = same.reduce((acc, t) => {
+        const v = Number.isFinite(Number(t.order)) ? Number(t.order) : 0;
+        return Math.max(acc, v);
+      }, 0);
+      return max + 1;
+    }
+
+    function normalizeSectionOrder(projectId, phaseId) {
+      const list = state.tasks
+        .filter(t => t.projectId === projectId && (t.phaseId || '') === (phaseId || ''))
+        .sort((a, b) => {
+          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 1e9;
+          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 1e9;
+          return ao - bo;
+        });
+      list.forEach((t, i) => {
+        t.order = i + 1;
+      });
+    }
+
+    function moveTaskInSection(task, direction) {
+      const list = state.tasks
+        .filter(t => t.projectId === task.projectId && (t.phaseId || '') === (task.phaseId || ''))
+        .sort((a, b) => {
+          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 1e9;
+          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 1e9;
+          return ao - bo;
+        });
+      const idx = list.findIndex(t => t.id === task.id);
+      if (idx === -1) return;
+      const target = idx + direction;
+      if (target < 0 || target >= list.length) return;
+      const temp = list[idx].order;
+      list[idx].order = list[target].order;
+      list[target].order = temp;
+      normalizeSectionOrder(task.projectId, task.phaseId);
+    }
+
+    function formatDuration(minutes) {
+      const total = Number(minutes);
+      if (!Number.isFinite(total) || total <= 0) return '';
+      if (total < 60) return `${total}m`;
+      const h = Math.floor(total / 60);
+      const m = total % 60;
+      return m ? `${h}h ${m}m` : `${h}h`;
+    }
+
+    function formatTime(seconds) {
+      const total = Math.max(0, Math.floor(seconds));
+      const m = String(Math.floor(total / 60)).padStart(2, '0');
+      const s = String(total % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function getTimerState() {
+      if (!state.ui.timer) {
+        state.ui.timer = {
+          mode: 'focus',
+          focusMinutes: 25,
+          breakMinutes: 5,
+          remainingSeconds: 1500,
+          running: false,
+          activeTaskId: null,
+          lastTick: 0
+        };
+      }
+      return state.ui.timer;
+    }
+
+    function updateTimerUI() {
+      const timer = getTimerState();
+      const label = timer.mode === 'break' ? 'Break' : 'Focus';
+      const display = formatTime(timer.remainingSeconds);
+      if (els.timerChip) {
+        els.timerChip.textContent = `${label} ${display}`;
+        els.timerChip.classList.toggle('timer-running', timer.running);
+      }
+      if (els.timerDisplay) els.timerDisplay.textContent = display;
+      if (els.timerModeLabel) {
+        els.timerModeLabel.textContent = timer.mode === 'break' ? 'Break Session' : 'Focus Session';
+      }
+      if (els.timerTaskLabel) {
+        const task = state.tasks.find(t => t.id === timer.activeTaskId);
+        els.timerTaskLabel.textContent = task
+          ? `Attached: ${task.title}`
+          : (timer.mode === 'break' ? 'No task attached' : 'No task attached');
+      }
+      if (els.timerStartBtn) {
+        els.timerStartBtn.textContent = timer.running ? 'Pause' : 'Start';
+      }
+    }
+
+    function setTimerMode(mode) {
+      const timer = getTimerState();
+      timer.mode = mode === 'break' ? 'break' : 'focus';
+      timer.running = false;
+      timer.lastTick = 0;
+      timer.activeTaskId = mode === 'break' ? null : timer.activeTaskId;
+      const minutes = timer.mode === 'break' ? timer.breakMinutes : timer.focusMinutes;
+      timer.remainingSeconds = Math.max(1, Math.round(minutes * 60));
+      updateTimerUI();
+    }
+
+    function attachSelectedTaskToTimer() {
+      const timer = getTimerState();
+      if (selectedTaskId) {
+        timer.activeTaskId = selectedTaskId;
+        updateTimerUI();
+      }
+    }
+
+    function tickPomodoro() {
+      const timer = getTimerState();
+      if (!timer.running) return;
+      const now = Date.now();
+      if (!timer.lastTick) timer.lastTick = now;
+      const deltaSeconds = Math.floor((now - timer.lastTick) / 1000);
+      if (deltaSeconds <= 0) return;
+      timer.remainingSeconds = Math.max(0, timer.remainingSeconds - deltaSeconds);
+      timer.lastTick = now;
+      if (timer.remainingSeconds <= 0) {
+        timer.running = false;
+        timer.lastTick = 0;
+        if (timer.mode === 'focus') {
+          const task = state.tasks.find(t => t.id === timer.activeTaskId);
+          if (task) {
+            const addMinutes = Math.max(1, Math.round(timer.focusMinutes));
+            task.actualMinutes = (Number(task.actualMinutes) || 0) + addMinutes;
+            task.updatedAt = new Date().toISOString();
+          }
+          const focusMinutes = Math.max(1, Math.round(timer.focusMinutes));
+          addScore(focusMinutes * FOCUS_POINTS_PER_MIN);
+          alert('Focus session complete.');
+          setTimerMode('break');
+          timer.activeTaskId = null;
+        } else {
+          alert('Break complete.');
+          setTimerMode('focus');
+        }
+        updateTimerUI();
+        render();
+        return;
+      }
+      updateTimerUI();
+    }
+
+    function startPomodoro() {
+      const timer = getTimerState();
+      if (timer.mode === 'focus' && !timer.activeTaskId) {
+        if (selectedTaskId) {
+          timer.activeTaskId = selectedTaskId;
+        } else {
+          const ok = confirm('Start a focus session without a task attached?');
+          if (!ok) return;
+        }
+      }
+      timer.running = true;
+      timer.lastTick = Date.now();
+      if (!pomodoroInterval) {
+        pomodoroInterval = setInterval(tickPomodoro, 1000);
+      }
+      updateTimerUI();
+    }
+
+    function pausePomodoro() {
+      const timer = getTimerState();
+      timer.running = false;
+      timer.lastTick = 0;
+      updateTimerUI();
+    }
+
+    function togglePomodoro() {
+      const timer = getTimerState();
+      if (timer.running) {
+        pausePomodoro();
+      } else {
+        startPomodoro();
+      }
+    }
+
+    function resetPomodoro() {
+      const timer = getTimerState();
+      timer.running = false;
+      timer.lastTick = 0;
+      const minutes = timer.mode === 'break' ? timer.breakMinutes : timer.focusMinutes;
+      timer.remainingSeconds = Math.max(1, Math.round(minutes * 60));
+      updateTimerUI();
+    }
+
+    function awardPoints(task) {
+      if (!task || task.pointsAwarded) return;
+      let bonus = 0;
+      if (task.actualMinutes) {
+        bonus = Math.max(0, task.actualMinutes) * 30;
+      } else if (task.durationMinutes) {
+        bonus = Math.min(task.durationMinutes, 120) * 10;
+      }
+      const points = 1000 + bonus;
+      task.pointsEarned = points;
+      task.pointsAwarded = true;
+      addScore(points);
+    }
+
+    function maybeAwardInboxProcessing(task, wasInbox) {
+      if (!task || task.inboxProcessed) return;
+      const nowInbox = isInboxTask(task);
+      if (wasInbox && !nowInbox) {
+        addScore(INBOX_PROCESS_POINTS);
+        task.inboxProcessed = true;
+        task.inboxProcessedAt = new Date().toISOString();
+      }
+    }
+
+    function shiftDate(dateStr, repeat, interval = 1) {
+      if (!dateStr) return '';
+      const [y, m, d] = dateStr.split('-').map(Number);
+      if (!y || !m || !d) return '';
+      const dt = new Date(y, m - 1, d);
+      if (repeat === 'daily') dt.setDate(dt.getDate() + interval);
+      if (repeat === 'weekly') dt.setDate(dt.getDate() + 7 * interval);
+      if (repeat === 'monthly') dt.setMonth(dt.getMonth() + interval);
+      const yy = dt.getFullYear();
+      const mm = String(dt.getMonth() + 1).padStart(2, '0');
+      const dd = String(dt.getDate()).padStart(2, '0');
+      return `${yy}-${mm}-${dd}`;
+    }
+
+    function createNextRecurringTask(task) {
+      if (!task || task.repeat === 'none' || task.repeatSpawned) return;
+      if (task.repeat !== 'daily' && task.repeat !== 'weekly' && task.repeat !== 'monthly') return;
+      const baseDate = task.due || todayStr();
+      const interval = Number.isFinite(Number(task.repeatEveryMonths)) && Number(task.repeatEveryMonths) > 0
+        ? Number(task.repeatEveryMonths)
+        : 1;
+      const nextDue = shiftDate(baseDate, task.repeat, task.repeat === 'monthly' ? interval : 1);
+      const nextStart = task.start ? shiftDate(task.start, task.repeat, task.repeat === 'monthly' ? interval : 1) : '';
+      state.tasks.unshift({
+        id: uid(),
+        title: task.title,
+        notes: task.notes || '',
+        status: 'next',
+        linger: task.linger || 'flexible',
+        repeat: task.repeat,
+        repeatSpawned: false,
+        repeatEveryMonths: interval,
+        durationMinutes: Number.isFinite(Number(task.durationMinutes)) ? Number(task.durationMinutes) : null,
+        actualMinutes: Number.isFinite(Number(task.actualMinutes)) ? Number(task.actualMinutes) : null,
+        progressPercent: Number.isFinite(Number(task.progressPercent)) ? Number(task.progressPercent) : null,
+        progressDone: Number.isFinite(Number(task.progressDone)) ? Number(task.progressDone) : null,
+        progressTotal: Number.isFinite(Number(task.progressTotal)) ? Number(task.progressTotal) : null,
+        progressUnits: task.progressUnits ? String(task.progressUnits) : '',
+        start: nextStart,
+        due: nextDue,
+        tags: Array.isArray(task.tags) ? [...task.tags] : [],
+        flagged: false,
+        context: task.context || '',
+        projectId: task.projectId || null,
+        phaseId: task.phaseId || '',
+        order: task.projectId ? nextOrder(task.projectId, task.phaseId || '') : null,
+        created: new Date().toISOString(),
+        completed: null,
+        updatedAt: new Date().toISOString(),
+        inboxProcessed: Boolean(task.projectId || task.context),
+        inboxProcessedAt: ''
+      });
+      task.repeatSpawned = true;
+    }
+
+    function render() {
+      applyInboxPenaltyIfNeeded();
+      els.todayLabel.textContent = new Date().toLocaleDateString(undefined, {
+        weekday: 'short', month: 'short', day: 'numeric'
+      });
+      if (els.scoreLabel) {
+        const total = state.ui.score?.total || 0;
+        els.scoreLabel.textContent = `Score ${total}`;
+      }
+      if (getTimerState().running) {
+        tickPomodoro();
+      }
+      if (getTimerState().running && !pomodoroInterval) {
+        pomodoroInterval = setInterval(tickPomodoro, 1000);
+      }
+      updateTimerUI();
+      els.scopeSelect.value = state.ui.scope || 'both';
+      document.documentElement.style.setProperty('--sidebar-w', `${state.ui.sidebarWidth || 280}px`);
+      setupAutoSync();
+
+      renderViews();
+      renderProjects();
+      renderTasks();
+      renderProjectOptions();
+      renderDetail();
+      saveState();
+    }
+
+    function setupAutoSync() {
+      const minutes = Number(state.ui.settings?.autoSyncMinutes) || 0;
+      if (minutes === autoSyncMinutes) return;
+      if (autoSyncTimer) {
+        clearInterval(autoSyncTimer);
+        autoSyncTimer = null;
+      }
+      autoSyncMinutes = minutes;
+      if (minutes > 0) {
+        autoSyncTimer = setInterval(() => {
+          pushToCloud();
+        }, minutes * 60 * 1000);
+      }
+    }
+
+    function renderViews() {
+      els.viewList.innerHTML = '';
+      views.forEach(view => {
+        if (hideWork() && view.id === 'single-work') return;
+        if (hidePersonal() && view.id === 'single-personal') return;
+        if (view.id === 'completed' && state.ui.settings?.showCompletedView === false) return;
+        const count = state.tasks
+          .filter(taskVisible)
+          .filter(task => {
+            if (task.start && task.start > todayStr() && view.id !== 'upcoming') return false;
+            if (state.ui.settings?.hideCompleted && task.status === 'done' && view.id !== 'completed') return false;
+            if (task.status === 'blocked') return false;
+            return true;
+          })
+          .filter(view.filter).length;
+        if (state.ui.settings?.showEmptyViews === false && count === 0) return;
+        const item = document.createElement('div');
+        const todayAlert = view.id === 'today' && count > 0;
+        item.className = 'nav-item' +
+          (state.ui.selectedViewId === view.id ? ' active' : '') +
+          (todayAlert ? ' today-alert' : '');
+        item.innerHTML = `<span>${view.label}</span><span class="pill">${count}</span>`;
+        item.onclick = () => {
+          state.ui.selectedViewId = view.id;
+          state.ui.selectedProjectId = null;
+          selectedTaskId = null;
+          render();
+        };
+        els.viewList.appendChild(item);
+      });
+    }
+
+    function renderProjects() {
+      els.projectList.innerHTML = '';
+      const groups = [
+        { id: 'work', label: 'Work' },
+        { id: 'personal', label: 'Personal' },
+        { id: 'general', label: 'General' }
+      ];
+      const statusRank = { active: 0, 'on-hold': 1, someday: 2 };
+      const priorityRank = { high: 0, normal: 1 };
+      groups.forEach(group => {
+        if (hideWork() && group.id === 'work') return;
+        if (hidePersonal() && group.id === 'personal') return;
+        const projects = state.projects
+          .filter(p => !p.archived && (p.area || 'general') === group.id)
+          .sort((a, b) => {
+            const prioDiff = (priorityRank[a.priority || 'normal'] ?? 99) - (priorityRank[b.priority || 'normal'] ?? 99);
+            if (prioDiff !== 0) return prioDiff;
+            const rankDiff = (statusRank[a.status] ?? 99) - (statusRank[b.status] ?? 99);
+            if (rankDiff !== 0) return rankDiff;
+            return a.name.localeCompare(b.name);
+          });
+        if (!projects.length) return;
+        const heading = document.createElement('div');
+        heading.className = 'section-title';
+        heading.style.marginTop = '8px';
+        heading.textContent = group.label;
+        els.projectList.appendChild(heading);
+        projects.forEach(project => {
+          const count = state.tasks.filter(t => t.projectId === project.id && t.status !== 'done').length;
+          const item = document.createElement('div');
+          item.className = 'project-item' + (state.ui.selectedProjectId === project.id ? ' active' : '');
+          item.innerHTML = `
+            <span>${project.name}</span>
+            <span class="project-actions">
+              ${project.priority === 'high' ? `<span class="tag">High</span>` : ''}
+              ${project.status !== 'active' ? `<span class="tag">${project.status}</span>` : ''}
+              <span class="pill">${count}</span>
+            </span>
+          `;
+          item.onclick = () => {
+            state.ui.selectedProjectId = project.id;
+            state.ui.selectedViewId = null;
+            selectedTaskId = null;
+            render();
+          };
+          els.projectList.appendChild(item);
+        });
+      });
+    }
+
+    function matchesFilters(task) {
+      if (!taskVisible(task)) return false;
+      if (task.start && task.start > todayStr() && !state.ui.selectedProjectId && state.ui.selectedViewId !== 'upcoming') return false;
+      if (state.ui.settings?.hideCompleted && task.status === 'done' && state.ui.selectedViewId !== 'completed') {
+        return false;
+      }
+      if (task.status === 'blocked' && !state.ui.selectedProjectId) return false;
+      if (state.ui.statusFilter && task.status !== state.ui.statusFilter) return false;
+      if (state.ui.search) {
+        const term = state.ui.search.toLowerCase();
+        const haystack = [task.title, task.notes, ...(task.tags || [])].join(' ').toLowerCase();
+        if (!haystack.includes(term)) return false;
+      }
+      return true;
+    }
+
+    function currentViewFilter(task) {
+      if (state.ui.selectedProjectId) {
+        return task.projectId === state.ui.selectedProjectId;
+      }
+      if (state.ui.selectedViewId) {
+        const view = views.find(v => v.id === state.ui.selectedViewId);
+        return view ? view.filter(task) : true;
+      }
+      return true;
+    }
+
+    function isWorkTask(task) {
+      if (!task) return false;
+      if (task.context === 'work') return true;
+      if (!task.projectId) return false;
+      const project = state.projects.find(p => p.id === task.projectId);
+      return Boolean(project && (project.area || 'general') === 'work');
+    }
+
+    function isPersonalTask(task) {
+      if (!task) return false;
+      if (task.context === 'personal') return true;
+      if (!task.projectId) return false;
+      const project = state.projects.find(p => p.id === task.projectId);
+      return Boolean(project && (project.area || 'general') === 'personal');
+    }
+
+    function hideWork() {
+      return state.ui.scope === 'personal';
+    }
+
+    function hidePersonal() {
+      return state.ui.scope === 'work';
+    }
+
+    function taskVisible(task) {
+      if (hideWork() && isWorkTask(task)) return false;
+      if (hidePersonal() && isPersonalTask(task)) return false;
+      return true;
+    }
+
+    function isBlockedBySequence(task) {
+      if (!task || task.status === 'done') return false;
+      if (!task.projectId || !task.phaseId) return false;
+      const project = state.projects.find(p => p.id === task.projectId);
+      if (!project || !(project.sequentialSections || []).includes(task.phaseId)) return false;
+      const list = state.tasks
+        .filter(t => t.projectId === task.projectId && (t.phaseId || '') === (task.phaseId || ''))
+        .sort((a, b) => {
+          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 1e9;
+          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 1e9;
+          return ao - bo;
+        });
+      const firstIncomplete = list.find(t => t.status !== 'done');
+      return firstIncomplete ? firstIncomplete.id !== task.id : false;
+    }
+
+    function applySequentialBlocking(projectId, phaseId) {
+      if (!projectId || !phaseId) return;
+      const project = state.projects.find(p => p.id === projectId);
+      if (!project || !(project.sequentialSections || []).includes(phaseId)) return;
+      const list = state.tasks
+        .filter(t => t.projectId === projectId && (t.phaseId || '') === (phaseId || ''))
+        .sort((a, b) => {
+          const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 1e9;
+          const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 1e9;
+          return ao - bo;
+        });
+      let found = false;
+      list.forEach(task => {
+        if (task.status === 'done') return;
+        if (!found) {
+          // first incomplete remains actionable
+          if (task.status === 'blocked' && task.blockedPrevStatus) {
+            task.status = task.blockedPrevStatus;
+          } else if (task.status === 'blocked') {
+            task.status = 'next';
+          }
+          task.blockedPrevStatus = '';
+          found = true;
+        } else {
+          if (task.status !== 'blocked') {
+            task.blockedPrevStatus = task.status;
+            task.status = 'blocked';
+          }
+        }
+      });
+    }
+
+    function renderTasks() {
+      els.taskList.innerHTML = '';
+      const tasks = state.tasks
+        .filter(currentViewFilter)
+        .filter(matchesFilters)
+        .sort((a, b) => {
+          if (a.status === 'done' && b.status !== 'done') return 1;
+          if (a.status !== 'done' && b.status === 'done') return -1;
+          if (a.linger === 'soon' && b.linger !== 'soon') return -1;
+          if (a.linger !== 'soon' && b.linger === 'soon') return 1;
+          if (a.due && b.due) return a.due.localeCompare(b.due);
+          if (a.due) return -1;
+          if (b.due) return 1;
+          if (a.linger === 'soon' && b.linger === 'soon') return taskAgeDays(b) - taskAgeDays(a);
+          return 0;
+        });
+
+      if (!tasks.length) {
+        els.taskList.innerHTML = '<div class="empty">No tasks here yet. Add one?</div>';
+        return;
+      }
+
+      if (state.ui.selectedProjectId) {
+        const project = state.projects.find(p => p.id === state.ui.selectedProjectId);
+        const sections = project ? (project.phases || []) : [];
+        if (project) {
+          project.sectionOrder = Array.isArray(project.sectionOrder) ? project.sectionOrder : [];
+          const missing = sections.filter(s => !project.sectionOrder.includes(s));
+          project.sectionOrder = project.sectionOrder.filter(s => sections.includes(s)).concat(missing);
+        }
+        const grouped = new Map();
+        sections.forEach(section => grouped.set(section, []));
+        grouped.set('', []);
+        tasks.forEach(task => {
+          const key = grouped.has(task.phaseId) ? task.phaseId : '';
+          grouped.get(key).push(task);
+        });
+        grouped.forEach((list, section) => {
+          list.forEach(task => {
+            if (task.projectId && !Number.isFinite(Number(task.order))) {
+              task.order = nextOrder(task.projectId, section);
+            }
+          });
+        });
+        grouped.forEach((list, section) => {
+          if (section) applySequentialBlocking(project.id, section);
+        });
+        const order = project ? [...(project.sectionOrder || sections), ''] : [...sections, ''];
+        const showEmpty = state.ui.settings?.showEmptySections !== false;
+        order.forEach(section => {
+          const groupTasks = grouped.get(section) || [];
+          if (!section && !groupTasks.length) return;
+          const heading = document.createElement('div');
+          heading.className = 'section-heading';
+          const title = document.createElement('div');
+          title.className = 'section-title';
+          title.textContent = section || 'No Section';
+          heading.appendChild(title);
+          if (section) {
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove';
+            removeBtn.textContent = 'Remove';
+            removeBtn.onclick = () => {
+              project.phases = (project.phases || []).filter(p => p !== section);
+              project.sectionOrder = (project.sectionOrder || []).filter(s => s !== section);
+              state.tasks.forEach(task => {
+                if (task.projectId === project.id && task.phaseId === section) {
+                  task.phaseId = '';
+                }
+              });
+              render();
+            };
+            const actions = document.createElement('div');
+            actions.className = 'section-actions';
+            const up = document.createElement('button');
+            up.className = 'mini-btn';
+            up.textContent = '↑';
+            up.onclick = () => {
+              const idx = project.sectionOrder.indexOf(section);
+              if (idx > 0) {
+                const tmp = project.sectionOrder[idx - 1];
+                project.sectionOrder[idx - 1] = project.sectionOrder[idx];
+                project.sectionOrder[idx] = tmp;
+                project.updatedAt = new Date().toISOString();
+                render();
+              }
+            };
+            const down = document.createElement('button');
+            down.className = 'mini-btn';
+            down.textContent = '↓';
+            down.onclick = () => {
+              const idx = project.sectionOrder.indexOf(section);
+              if (idx !== -1 && idx < project.sectionOrder.length - 1) {
+                const tmp = project.sectionOrder[idx + 1];
+                project.sectionOrder[idx + 1] = project.sectionOrder[idx];
+                project.sectionOrder[idx] = tmp;
+                project.updatedAt = new Date().toISOString();
+                render();
+              }
+            };
+            const toggleSeq = document.createElement('button');
+            toggleSeq.className = 'mini-btn' + ((project.sequentialSections || []).includes(section) ? ' active' : '');
+            toggleSeq.textContent = 'Sequential';
+            toggleSeq.onclick = () => {
+              project.sequentialSections = project.sequentialSections || [];
+              if (project.sequentialSections.includes(section)) {
+                project.sequentialSections = project.sequentialSections.filter(s => s !== section);
+              } else {
+                project.sequentialSections.push(section);
+              }
+              project.updatedAt = new Date().toISOString();
+              render();
+            };
+            actions.appendChild(up);
+            actions.appendChild(down);
+            actions.appendChild(toggleSeq);
+            actions.appendChild(removeBtn);
+            heading.appendChild(actions);
+          }
+          els.taskList.appendChild(heading);
+          const sortedGroup = groupTasks.sort((a, b) => {
+            const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 1e9;
+            const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 1e9;
+            if (ao !== bo) return ao - bo;
+            return 0;
+          });
+          if (!sortedGroup.length && showEmpty) {
+            const empty = document.createElement('div');
+            empty.className = 'empty';
+            empty.textContent = 'No tasks in this section yet.';
+            els.taskList.appendChild(empty);
+          } else if (sortedGroup.length) {
+            const sectionContainer = document.createElement('div');
+            sectionContainer.className = 'section-container';
+            sectionContainer.dataset.section = section;
+            sectionContainer.ondragover = (e) => e.preventDefault();
+            sectionContainer.ondrop = (e) => {
+              e.preventDefault();
+              const taskId = e.dataTransfer.getData('text/task-id');
+              if (!taskId) return;
+              const task = state.tasks.find(t => t.id === taskId);
+              if (!task || task.projectId !== project.id) return;
+              task.phaseId = section;
+              task.order = nextOrder(task.projectId, section);
+              task.updatedAt = new Date().toISOString();
+              render();
+            };
+            sortedGroup.forEach(task => {
+              sectionContainer.appendChild(renderTaskCard(task, { draggable: true, inProject: true }));
+            });
+            els.taskList.appendChild(sectionContainer);
+          }
+        });
+        return;
+      }
+
+      tasks.forEach(task => {
+        els.taskList.appendChild(renderTaskCard(task, { inProject: false }));
+      });
+    }
+
+    function renderTaskCard(task, opts = {}) {
+      const card = document.createElement('div');
+      const blocked = task.status === 'blocked';
+      const isFuture = opts.inProject && task.start && task.start > todayStr();
+      card.className = 'task-card' +
+        (selectedTaskId === task.id ? ' selected' : '') +
+        (blocked ? ' blocked' : '') +
+        (isFuture ? ' future' : '');
+      if (opts.draggable) {
+        card.setAttribute('draggable', 'true');
+        card.addEventListener('dragstart', (e) => {
+          card.classList.add('dragging');
+          e.dataTransfer.setData('text/task-id', task.id);
+        });
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+        });
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+        });
+        card.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const sourceId = e.dataTransfer.getData('text/task-id');
+          if (!sourceId || sourceId === task.id) return;
+          const source = state.tasks.find(t => t.id === sourceId);
+          if (!source) return;
+          if (source.projectId !== task.projectId) return;
+          source.phaseId = task.phaseId || '';
+          source.order = Number.isFinite(Number(task.order)) ? Number(task.order) : nextOrder(task.projectId, task.phaseId);
+          normalizeSectionOrder(task.projectId, task.phaseId);
+          source.updatedAt = new Date().toISOString();
+          render();
+        });
+      }
+      const checkbox = document.createElement('div');
+      checkbox.className = 'checkbox' + (task.status === 'done' ? ' checked' : '');
+      checkbox.textContent = task.status === 'done' ? '✓' : '';
+        checkbox.onclick = (e) => {
+          e.stopPropagation();
+          if (task.status === 'done') {
+            task.status = 'next';
+            task.completed = null;
+          } else {
+            task.status = 'done';
+            task.completed = new Date().toISOString();
+            awardPoints(task);
+            createNextRecurringTask(task);
+          }
+          render();
+        };
+
+      const body = document.createElement('div');
+      const project = state.projects.find(p => p.id === task.projectId);
+      const ageDays = taskAgeDays(task);
+      const showDuration = state.ui.settings?.showDuration !== false;
+      body.innerHTML = `
+        <div class="task-title">${escapeHtml(task.title)}</div>
+        <div class="task-meta">
+          ${task.start && task.due && task.start === task.due
+            ? `<span class="badge">Do On ${task.due}</span>`
+            : `${task.start ? `<span class="badge">Start ${task.start}</span>` : ''}${task.due ? `<span class="badge">Due ${task.due}</span>` : ''}`}
+          ${showDuration && task.durationMinutes ? `<span class="badge">Duration ${escapeHtml(formatDuration(task.durationMinutes))}</span>` : ''}
+          ${task.progressTotal ? `<span class="badge">Progress ${task.progressDone || 0}/${task.progressTotal}${task.progressUnits ? ` ${escapeHtml(task.progressUnits)}` : ''}</span>` : (task.progressPercent ? `<span class="badge">Progress ${task.progressPercent}%</span>` : '')}
+          ${task.linger === 'soon' ? `<span class="badge">Do Soon${ageDays >= 1 ? ` • ${ageDays}d` : ''}</span>` : ''}
+          ${task.repeat !== 'none'
+            ? `<span class="tag">${
+              task.repeat === 'monthly' && Number(task.repeatEveryMonths || 1) > 1
+                ? `Repeats every ${Number(task.repeatEveryMonths)} months`
+                : `Repeats ${escapeHtml(task.repeat)}`
+            }</span>`
+            : ''}
+          ${project && !state.ui.selectedProjectId ? `<span class="tag">${project.name}</span>` : (task.context ? '' : (!state.ui.selectedProjectId ? '<span class="tag">Inbox</span>' : ''))}
+          ${task.context ? `<span class="tag">Single: ${escapeHtml(task.context)}</span>` : ''}
+          <span class="tag">${task.status}</span>
+          ${task.flagged ? '<span class="tag">Flagged</span>' : ''}
+          ${(task.tags || []).map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}
+        </div>
+      `;
+
+      const actions = document.createElement('div');
+      actions.className = 'order-actions';
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn ghost';
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = (e) => {
+        e.stopPropagation();
+        selectedTaskId = task.id;
+        render();
+      };
+      actions.appendChild(editBtn);
+      if (state.ui.selectedProjectId) {
+        const up = document.createElement('button');
+        up.className = 'mini-btn';
+        up.textContent = '↑';
+        up.onclick = (e) => {
+          e.stopPropagation();
+          moveTaskInSection(task, -1);
+          render();
+        };
+        const down = document.createElement('button');
+        down.className = 'mini-btn';
+        down.textContent = '↓';
+        down.onclick = (e) => {
+          e.stopPropagation();
+          moveTaskInSection(task, 1);
+          render();
+        };
+        actions.appendChild(up);
+        actions.appendChild(down);
+      }
+
+      card.onclick = () => {
+        selectedTaskId = task.id;
+        render();
+      };
+
+      card.appendChild(checkbox);
+      card.appendChild(body);
+      card.appendChild(actions);
+      return card;
+    }
+
+    function renderProjectOptions() {
+      els.detailProject.innerHTML = '<option value="">Inbox</option>';
+      state.projects.filter(p => !p.archived).forEach(project => {
+        if (hideWork() && (project.area || 'general') === 'work') return;
+        if (hidePersonal() && (project.area || 'general') === 'personal') return;
+        const opt = document.createElement('option');
+        opt.value = project.id;
+        opt.textContent = project.name;
+        els.detailProject.appendChild(opt);
+      });
+      els.quickTaskProject.innerHTML = '<option value="">Inbox</option>';
+      state.projects.filter(p => !p.archived).forEach(project => {
+        if (hideWork() && (project.area || 'general') === 'work') return;
+        if (hidePersonal() && (project.area || 'general') === 'personal') return;
+        const opt = document.createElement('option');
+        opt.value = project.id;
+        opt.textContent = project.name;
+        els.quickTaskProject.appendChild(opt);
+      });
+      if (state.ui.selectedProjectId) {
+        const exists = Array.from(els.quickTaskProject.options).some(opt => opt.value === state.ui.selectedProjectId);
+        if (exists) {
+          els.quickTaskProject.value = state.ui.selectedProjectId;
+        }
+      }
+      const selectedTask = state.tasks.find(t => t.id === selectedTaskId);
+      const projectId = selectedTask ? (selectedTask.projectId || '') : (els.detailProject.value || '');
+      const phaseId = selectedTask ? (selectedTask.phaseId || '') : (els.detailPhase.value || '');
+      renderPhaseOptions(projectId, phaseId);
+    }
+
+    function renderPhaseOptions(projectId, selectedPhaseId) {
+      els.detailPhase.innerHTML = '<option value="">No phase</option>';
+      if (!projectId) return;
+      const project = state.projects.find(p => p.id === projectId);
+      if (!project) return;
+      (project.phases || []).forEach(phaseName => {
+        const phaseId = String(phaseName);
+        const opt = document.createElement('option');
+        opt.value = phaseId;
+        opt.textContent = phaseName;
+        els.detailPhase.appendChild(opt);
+      });
+      if (selectedPhaseId && (project.phases || []).includes(selectedPhaseId)) {
+        els.detailPhase.value = selectedPhaseId;
+      }
+    }
+
+    function renderDetail() {
+      const task = state.tasks.find(t => t.id === selectedTaskId);
+      const project = state.projects.find(p => p.id === state.ui.selectedProjectId);
+      if (!task && !project) {
+        els.detailsTitle.textContent = 'Task Details';
+        els.detailsEmpty.style.display = 'block';
+        els.detailsForm.style.display = 'none';
+        els.projectDetailsForm.style.display = 'none';
+        renderPhaseOptions('', '');
+        return;
+      }
+      if (task) {
+        els.detailsTitle.textContent = 'Task Details';
+        els.detailsEmpty.style.display = 'none';
+        els.detailsForm.style.display = 'block';
+        els.projectDetailsForm.style.display = 'none';
+        els.detailTitle.value = task.title;
+        els.detailNotes.value = task.notes || '';
+        els.detailStart.value = task.start || '';
+        els.detailDue.value = task.due || '';
+        els.detailStatus.value = task.status;
+        els.detailLinger.value = task.linger || 'flexible';
+        els.detailRepeat.value = task.repeat || 'none';
+        els.detailRepeatEvery.value = String(task.repeatEveryMonths || 1);
+        els.repeatEveryRow.style.display = task.repeat === 'monthly' ? 'grid' : 'none';
+        const durationMinutes = Number(task.durationMinutes) || 0;
+        if (durationMinutes > 0 && durationMinutes % 60 === 0) {
+          els.detailDurationValue.value = String(durationMinutes / 60);
+          els.detailDurationUnit.value = 'hours';
+        } else if (durationMinutes > 0) {
+          els.detailDurationValue.value = String(durationMinutes);
+          els.detailDurationUnit.value = 'minutes';
+        } else {
+          els.detailDurationValue.value = '';
+          els.detailDurationUnit.value = 'minutes';
+        }
+        els.detailActualMinutes.value = task.actualMinutes ? String(task.actualMinutes) : '';
+        els.detailProgressPercent.value = task.progressPercent ? String(task.progressPercent) : '';
+        els.detailProgressUnits.value = task.progressUnits || '';
+        els.detailProgressDone.value = task.progressDone ? String(task.progressDone) : '';
+        els.detailProgressTotal.value = task.progressTotal ? String(task.progressTotal) : '';
+        els.detailTags.value = (task.tags || []).join(', ');
+        els.detailProject.value = task.projectId || '';
+        renderPhaseOptions(task.projectId || '', task.phaseId || '');
+        els.detailFlagged.value = String(task.flagged);
+        els.detailContext.value = task.context || '';
+        return;
+      }
+      if (project) {
+        els.detailsTitle.textContent = 'Project Details';
+        els.detailsEmpty.style.display = 'none';
+        els.detailsForm.style.display = 'none';
+        els.projectDetailsForm.style.display = 'block';
+        els.projectName.value = project.name;
+        els.projectNotes.value = project.notes || '';
+        els.projectSectionName.value = '';
+        els.projectArea.value = project.area || 'general';
+        els.projectStatus.value = project.status || 'active';
+        els.projectPriority.value = project.priority || 'normal';
+        els.projectStart.value = project.start || '';
+        els.projectDue.value = project.due || '';
+      }
+    }
+
+    function addProjectFromInput() {
+      const name = (els.newProjectName.value || '').trim();
+      if (!name) return;
+      state.projects.push({
+        id: uid(),
+        name,
+        color: '#e4572e',
+        archived: false,
+        area: 'general',
+        status: 'active',
+        priority: 'normal',
+        sequentialSections: [],
+        sectionOrder: [],
+        phases: [],
+        notes: '',
+        start: '',
+        due: '',
+        updatedAt: new Date().toISOString()
+      });
+      els.newProjectName.value = '';
+      render();
+    }
+
+    function addTaskFromQuickAdd() {
+      const title = (els.quickTaskTitle.value || '').trim();
+      if (!title) return;
+      const projectId = els.quickTaskProject.value || null;
+      const context = projectId ? '' : (els.quickTaskContext.value || '');
+      const task = {
+        id: uid(),
+        title,
+        notes: '',
+        status: 'next',
+        linger: els.quickTaskLinger.value || 'flexible',
+        repeat: 'none',
+        repeatSpawned: false,
+        repeatEveryMonths: 1,
+        durationMinutes: null,
+        actualMinutes: null,
+        progressPercent: null,
+        progressDone: null,
+        progressTotal: null,
+        progressUnits: '',
+        start: '',
+        due: els.quickTaskDue.value || '',
+        tags: [],
+        flagged: false,
+        context,
+        projectId,
+        phaseId: '',
+        order: projectId ? nextOrder(projectId, '') : null,
+        created: new Date().toISOString(),
+        completed: null,
+        updatedAt: new Date().toISOString(),
+        inboxProcessed: Boolean(projectId || context),
+        inboxProcessedAt: ''
+      };
+      state.tasks.unshift(task);
+      selectedTaskId = task.id;
+      els.quickTaskTitle.value = '';
+      els.quickTaskContext.value = '';
+      els.quickTaskDue.value = '';
+      els.quickTaskLinger.value = 'flexible';
+      render();
+    }
+
+    function saveDetail() {
+      const task = state.tasks.find(t => t.id === selectedTaskId);
+      if (!task) return;
+      const wasDone = task.status === 'done';
+      const wasInbox = isInboxTask(task);
+      const prevProjectId = task.projectId;
+      const prevPhaseId = task.phaseId || '';
+      task.title = els.detailTitle.value.trim() || 'Untitled task';
+      task.notes = els.detailNotes.value;
+      task.start = els.detailStart.value;
+      task.due = els.detailDue.value;
+      task.status = els.detailStatus.value;
+      task.linger = els.detailLinger.value || 'flexible';
+      task.repeat = els.detailRepeat.value || 'none';
+      const repeatEveryRaw = Number(els.detailRepeatEvery.value);
+      task.repeatEveryMonths = task.repeat === 'monthly' && Number.isFinite(repeatEveryRaw) && repeatEveryRaw > 0
+        ? Math.round(repeatEveryRaw)
+        : 1;
+      const durationRaw = Number(els.detailDurationValue.value);
+      if (Number.isFinite(durationRaw) && durationRaw > 0) {
+        task.durationMinutes = els.detailDurationUnit.value === 'hours'
+          ? Math.round(durationRaw * 60)
+          : Math.round(durationRaw);
+      } else {
+        task.durationMinutes = null;
+      }
+      const actualRaw = Number(els.detailActualMinutes.value);
+      task.actualMinutes = Number.isFinite(actualRaw) && actualRaw > 0 ? Math.round(actualRaw) : null;
+      const progressPercentRaw = Number(els.detailProgressPercent.value);
+      task.progressPercent = Number.isFinite(progressPercentRaw) && progressPercentRaw > 0
+        ? Math.min(100, Math.round(progressPercentRaw))
+        : null;
+      const progressDoneRaw = Number(els.detailProgressDone.value);
+      const progressTotalRaw = Number(els.detailProgressTotal.value);
+      task.progressDone = Number.isFinite(progressDoneRaw) && progressDoneRaw > 0
+        ? Math.round(progressDoneRaw)
+        : null;
+      task.progressTotal = Number.isFinite(progressTotalRaw) && progressTotalRaw > 0
+        ? Math.round(progressTotalRaw)
+        : null;
+      task.progressUnits = (els.detailProgressUnits.value || '').trim();
+      task.tags = els.detailTags.value
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean);
+      task.projectId = els.detailProject.value || null;
+      task.phaseId = task.projectId ? (els.detailPhase.value || '') : '';
+      if (task.projectId && (task.projectId !== prevProjectId || task.phaseId !== prevPhaseId || !Number.isFinite(Number(task.order)))) {
+        task.order = nextOrder(task.projectId, task.phaseId);
+      }
+      task.flagged = els.detailFlagged.value === 'true';
+      task.context = task.projectId ? '' : (els.detailContext.value || '');
+      task.updatedAt = new Date().toISOString();
+      maybeAwardInboxProcessing(task, wasInbox);
+      if (task.projectId && task.phaseId) {
+        applySequentialBlocking(task.projectId, task.phaseId);
+      }
+      if (task.status === 'done' && !wasDone) {
+        task.completed = new Date().toISOString();
+        awardPoints(task);
+        createNextRecurringTask(task);
+      } else if (task.status === 'done' && task.completed) {
+        // keep existing completion timestamp
+      } else {
+        task.completed = null;
+      }
+      render();
+    }
+
+    function deleteTask() {
+      const idx = state.tasks.findIndex(t => t.id === selectedTaskId);
+      if (idx === -1) return;
+      if (!confirm('Delete this task?')) return;
+      const timer = getTimerState();
+      if (timer.activeTaskId === selectedTaskId) {
+        timer.activeTaskId = null;
+      }
+      state.tasks.splice(idx, 1);
+      selectedTaskId = null;
+      render();
+    }
+
+    function deleteProject(projectId) {
+      const project = state.projects.find(p => p.id === projectId);
+      if (!project) return;
+      const taskCount = state.tasks.filter(t => t.projectId === projectId).length;
+      const message = taskCount
+        ? `Delete project "${project.name}"? ${taskCount} task(s) will be moved to Inbox.`
+        : `Delete project "${project.name}"?`;
+      if (!confirm(message)) return;
+      state.tasks.forEach(t => {
+        if (t.projectId === projectId) {
+          t.projectId = null;
+          t.phaseId = '';
+        }
+      });
+      state.projects = state.projects.filter(p => p.id !== projectId);
+      const timer = getTimerState();
+      if (timer.activeTaskId) {
+        const task = state.tasks.find(t => t.id === timer.activeTaskId);
+        if (!task) timer.activeTaskId = null;
+      }
+      if (state.ui.selectedProjectId === projectId) {
+        state.ui.selectedProjectId = null;
+        state.ui.selectedViewId = 'inbox';
+      }
+      render();
+    }
+
+    function saveProjectDetail() {
+      const project = state.projects.find(p => p.id === state.ui.selectedProjectId);
+      if (!project) return;
+      project.name = els.projectName.value.trim() || 'Untitled project';
+      project.notes = els.projectNotes.value;
+      project.area = els.projectArea.value || 'general';
+      project.status = els.projectStatus.value || 'active';
+      project.priority = els.projectPriority.value || 'normal';
+      project.start = els.projectStart.value;
+      project.due = els.projectDue.value;
+      project.updatedAt = new Date().toISOString();
+      render();
+    }
+
+
+    function exportJson() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dayforge-export.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function readImportFile(onLoaded) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/json';
+      input.onchange = () => {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const imported = JSON.parse(reader.result);
+            if (!imported.tasks || !imported.projects) throw new Error('Invalid file');
+            onLoaded(imported);
+          } catch (err) {
+            alert('Could not import file.');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    function mergeArraysUnique(a, b) {
+      const set = new Set([...(a || []), ...(b || [])].filter(Boolean));
+      return Array.from(set);
+    }
+
+    function mergeByUpdatedAt(localItem, importedItem) {
+      const localTs = Date.parse(localItem.updatedAt || '');
+      const importedTs = Date.parse(importedItem.updatedAt || '');
+      if (!Number.isNaN(localTs) && !Number.isNaN(importedTs)) {
+        return importedTs > localTs ? importedItem : localItem;
+      }
+      return localItem;
+    }
+
+    function mergeImport(imported, mode) {
+      const normalized = normalizeState(imported);
+      if (mode === 'overwrite') {
+        state.projects = normalized.projects;
+        state.tasks = normalized.tasks;
+        return;
+      }
+      if (mode === 'duplicate') {
+        state.projects = state.projects.concat(
+          normalized.projects.map(p => ({ ...p, id: uid(), updatedAt: new Date().toISOString() }))
+        );
+        state.tasks = state.tasks.concat(
+          normalized.tasks.map(t => ({
+            ...t,
+            id: uid(),
+            projectId: t.projectId,
+            updatedAt: new Date().toISOString()
+          }))
+        );
+        return;
+      }
+      const projectById = new Map(state.projects.map(p => [p.id, p]));
+      normalized.projects.forEach(p => {
+        if (!projectById.has(p.id)) {
+          state.projects.push(p);
+          return;
+        }
+        const local = projectById.get(p.id);
+        const winner = mergeByUpdatedAt(local, p);
+        const merged = {
+          ...local,
+          ...winner,
+          phases: mergeArraysUnique(local.phases, p.phases),
+          notes: p.notes || local.notes,
+          start: p.start || local.start,
+          due: p.due || local.due,
+          updatedAt: winner.updatedAt || local.updatedAt
+        };
+        Object.assign(local, merged);
+      });
+
+      const taskById = new Map(state.tasks.map(t => [t.id, t]));
+      normalized.tasks.forEach(t => {
+        if (!taskById.has(t.id)) {
+          state.tasks.push(t);
+          return;
+        }
+        const local = taskById.get(t.id);
+        const winner = mergeByUpdatedAt(local, t);
+        const merged = {
+          ...local,
+          ...winner,
+          tags: mergeArraysUnique(local.tags, t.tags),
+          notes: t.notes || local.notes,
+          start: t.start || local.start,
+          due: t.due || local.due,
+          progressUnits: t.progressUnits || local.progressUnits,
+          updatedAt: winner.updatedAt || local.updatedAt
+        };
+        Object.assign(local, merged);
+      });
+    }
+
+    function importJson() {
+      readImportFile((imported) => {
+        els.importModal.classList.add('open');
+        const confirm = () => {
+          const mode = document.querySelector('input[name="importMode"]:checked')?.value || 'merge';
+          mergeImport(imported, mode);
+          els.importModal.classList.remove('open');
+          selectedTaskId = null;
+          render();
+          els.confirmImportBtn.onclick = null;
+        };
+        els.confirmImportBtn.onclick = confirm;
+      });
+    }
+
+    async function pushToCloud() {
+      const url = state.ui.settings?.blobUrl;
+      if (!url) {
+        alert('Please set the Azure Blob SAS URL in Settings.');
+        return;
+      }
+      try {
+        const res = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'x-ms-blob-type': 'BlockBlob',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(state, null, 2)
+        });
+        if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+        state.ui.settings.lastSyncAt = new Date().toLocaleString();
+        saveState();
+        if (els.settingsLastSync) {
+          els.settingsLastSync.textContent = `Last sync: ${state.ui.settings.lastSyncAt}`;
+        }
+        return true;
+      } catch (err) {
+        alert('Upload failed. Check your SAS URL and network.');
+        return false;
+      }
+    }
+
+    async function pullFromCloud() {
+      const url = state.ui.settings?.blobUrl;
+      if (!url) {
+        alert('Please set the Azure Blob SAS URL in Settings.');
+        return;
+      }
+      try {
+        const res = await fetch(url, { method: 'GET' });
+        if (!res.ok) throw new Error(`Download failed (${res.status})`);
+        const imported = await res.json();
+        mergeImport(imported, 'merge');
+        state.ui.settings.lastSyncAt = new Date().toLocaleString();
+        saveState();
+        if (els.settingsLastSync) {
+          els.settingsLastSync.textContent = `Last sync: ${state.ui.settings.lastSyncAt}`;
+        }
+        render();
+        return true;
+      } catch (err) {
+        alert('Download failed. Check your SAS URL and network.');
+        return false;
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    els.searchInput.oninput = (e) => {
+      state.ui.search = e.target.value;
+      render();
+    };
+
+    els.statusFilter.onchange = (e) => {
+      state.ui.statusFilter = e.target.value;
+      render();
+    };
+
+    els.clearFiltersBtn.onclick = () => {
+      state.ui.search = '';
+      state.ui.statusFilter = '';
+      els.searchInput.value = '';
+      els.statusFilter.value = '';
+      render();
+    };
+    els.randomTaskBtn.onclick = () => {
+      const pool = state.tasks.filter(matchesFilters).filter(t => t.status !== 'blocked');
+      if (!pool.length) {
+        alert('No tasks available in this view.');
+        return;
+      }
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      if (pick.projectId) {
+        state.ui.scope = 'both';
+        state.ui.selectedProjectId = pick.projectId;
+        state.ui.selectedViewId = null;
+      } else {
+        state.ui.selectedProjectId = null;
+        if (pick.context === 'work') {
+          state.ui.selectedViewId = 'single-work';
+        } else if (pick.context === 'personal') {
+          state.ui.selectedViewId = 'single-personal';
+        } else {
+          state.ui.selectedViewId = 'inbox';
+        }
+      }
+      selectedTaskId = pick.id;
+      render();
+    };
+
+    els.newProjectBtn.onclick = addProjectFromInput;
+    els.newProjectName.onkeydown = (e) => {
+      if (e.key === 'Enter') addProjectFromInput();
+    };
+    els.quickAddBtn.onclick = addTaskFromQuickAdd;
+    els.quickTaskTitle.onkeydown = (e) => {
+      if (e.key === 'Enter') addTaskFromQuickAdd();
+    };
+    els.detailProject.onchange = (e) => {
+      renderPhaseOptions(e.target.value || '', '');
+    };
+    els.detailRepeat.onchange = () => {
+      els.repeatEveryRow.style.display = els.detailRepeat.value === 'monthly' ? 'grid' : 'none';
+    };
+    els.newTaskBtn.onclick = () => {
+      els.quickTaskTitle.focus();
+    };
+    els.addProjectSectionBtn.onclick = () => {
+      const project = state.projects.find(p => p.id === state.ui.selectedProjectId);
+      if (!project) return;
+      const name = (els.projectSectionName.value || '').trim();
+      if (!name) return;
+      project.phases = project.phases || [];
+      if (!project.phases.includes(name)) {
+        project.phases.push(name);
+        project.sectionOrder = project.sectionOrder || [];
+        project.sectionOrder.push(name);
+      }
+      els.projectSectionName.value = '';
+      render();
+    };
+    els.projectSectionName.onkeydown = (e) => {
+      if (e.key === 'Enter') els.addProjectSectionBtn.click();
+    };
+    els.saveTaskBtn.onclick = saveDetail;
+    els.deleteTaskBtn.onclick = deleteTask;
+    els.saveProjectBtn.onclick = saveProjectDetail;
+    els.deleteProjectBtn.onclick = () => {
+      if (state.ui.selectedProjectId) deleteProject(state.ui.selectedProjectId);
+    };
+    els.scopeSelect.onchange = (e) => {
+      state.ui.scope = e.target.value || 'both';
+      const selectedProject = state.projects.find(p => p.id === state.ui.selectedProjectId);
+      if (selectedProject) {
+        const area = selectedProject.area || 'general';
+        if ((hideWork() && area === 'work') || (hidePersonal() && area === 'personal')) {
+          state.ui.selectedProjectId = null;
+          state.ui.selectedViewId = 'inbox';
+        }
+      }
+      if ((hideWork() && state.ui.selectedViewId === 'single-work') ||
+          (hidePersonal() && state.ui.selectedViewId === 'single-personal')) {
+        state.ui.selectedViewId = 'inbox';
+      }
+      const selectedTask = state.tasks.find(t => t.id === selectedTaskId);
+      if (selectedTask && !taskVisible(selectedTask)) {
+        selectedTaskId = null;
+      }
+      render();
+    };
+    if (els.sidebarResizer) {
+      let resizing = false;
+      els.sidebarResizer.addEventListener('mousedown', (e) => {
+        resizing = true;
+        document.body.style.cursor = 'col-resize';
+        e.preventDefault();
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!resizing) return;
+        const min = 220;
+        const max = 420;
+        const next = Math.min(max, Math.max(min, e.clientX - 24));
+        state.ui.sidebarWidth = next;
+        document.documentElement.style.setProperty('--sidebar-w', `${next}px`);
+      });
+      window.addEventListener('mouseup', () => {
+        if (!resizing) return;
+        resizing = false;
+        document.body.style.cursor = '';
+        render();
+      });
+    }
+    els.settingsBtn.onclick = () => {
+      els.settingsDefaultScope.value = state.ui.settings?.defaultScope || 'both';
+      els.settingsDefaultView.innerHTML = '';
+      views.forEach(view => {
+        const opt = document.createElement('option');
+        opt.value = view.id;
+        opt.textContent = view.label;
+        els.settingsDefaultView.appendChild(opt);
+      });
+      els.settingsDefaultView.value = state.ui.settings?.defaultView || 'inbox';
+      els.settingsHideCompleted.checked = Boolean(state.ui.settings?.hideCompleted);
+      els.settingsShowEmptySections.checked = state.ui.settings?.showEmptySections !== false;
+      els.settingsShowDuration.checked = state.ui.settings?.showDuration !== false;
+      els.settingsShowEmptyViews.checked = state.ui.settings?.showEmptyViews !== false;
+      els.settingsShowCompletedView.checked = state.ui.settings?.showCompletedView !== false;
+      els.settingsBlobUrl.value = state.ui.settings?.blobUrl || '';
+      els.settingsAutoSyncMinutes.value = String(state.ui.settings?.autoSyncMinutes || 0);
+      els.settingsLastSync.textContent = `Last sync: ${state.ui.settings?.lastSyncAt || 'never'}`;
+      els.settingsModal.classList.add('open');
+    };
+    els.closeSettingsBtn.onclick = () => {
+      els.settingsModal.classList.remove('open');
+    };
+    els.settingsModal.onclick = (e) => {
+      if (e.target === els.settingsModal) els.settingsModal.classList.remove('open');
+    };
+    els.closeImportBtn.onclick = () => {
+      els.importModal.classList.remove('open');
+    };
+    els.importModal.onclick = (e) => {
+      if (e.target === els.importModal) els.importModal.classList.remove('open');
+    };
+    els.scoreLabel.onclick = () => {
+      renderScoreHistory();
+      els.scoreModal.classList.add('open');
+    };
+    els.closeScoreBtn.onclick = () => {
+      els.scoreModal.classList.remove('open');
+    };
+    els.scoreModal.onclick = (e) => {
+      if (e.target === els.scoreModal) els.scoreModal.classList.remove('open');
+    };
+    if (els.timerChip) {
+      els.timerChip.onclick = () => {
+        updateTimerUI();
+        els.timerModal.classList.add('open');
+      };
+    }
+    if (els.closeTimerBtn) {
+      els.closeTimerBtn.onclick = () => {
+        els.timerModal.classList.remove('open');
+      };
+    }
+    if (els.timerModal) {
+      els.timerModal.onclick = (e) => {
+        if (e.target === els.timerModal) els.timerModal.classList.remove('open');
+      };
+    }
+    if (els.timerStartBtn) {
+      els.timerStartBtn.onclick = togglePomodoro;
+    }
+    if (els.timerResetBtn) {
+      els.timerResetBtn.onclick = resetPomodoro;
+    }
+    if (els.timerFocusBtn) {
+      els.timerFocusBtn.onclick = () => setTimerMode('focus');
+    }
+    if (els.timerBreakBtn) {
+      els.timerBreakBtn.onclick = () => setTimerMode('break');
+    }
+    if (els.timerAttachBtn) {
+      els.timerAttachBtn.onclick = () => attachSelectedTaskToTimer();
+    }
+    document.querySelectorAll('[data-focus-minutes]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const minutes = Number(btn.getAttribute('data-focus-minutes'));
+        if (!Number.isFinite(minutes) || minutes <= 0) return;
+        const timer = getTimerState();
+        timer.focusMinutes = minutes;
+        if (timer.mode === 'focus') {
+          timer.running = false;
+          timer.lastTick = 0;
+          timer.remainingSeconds = Math.round(minutes * 60);
+        }
+        updateTimerUI();
+      });
+    });
+    els.pushCloudBtn.onclick = pushToCloud;
+    els.pullCloudBtn.onclick = pullFromCloud;
+    els.syncBtn.onclick = async () => {
+      const okPush = await pushToCloud();
+      const okPull = okPush ? await pullFromCloud() : false;
+      if (okPush && okPull) {
+        els.syncBtn.textContent = 'Synced';
+        setTimeout(() => {
+          els.syncBtn.textContent = 'Sync';
+        }, 1500);
+      }
+    };
+    els.saveSettingsBtn.onclick = () => {
+      state.ui.settings = {
+        defaultScope: els.settingsDefaultScope.value || 'both',
+        defaultView: els.settingsDefaultView.value || 'inbox',
+        hideCompleted: Boolean(els.settingsHideCompleted.checked),
+        showEmptySections: Boolean(els.settingsShowEmptySections.checked),
+        showDuration: Boolean(els.settingsShowDuration.checked),
+        showEmptyViews: Boolean(els.settingsShowEmptyViews.checked),
+        showCompletedView: Boolean(els.settingsShowCompletedView.checked),
+        blobUrl: (els.settingsBlobUrl.value || '').trim(),
+        autoSyncMinutes: Math.max(0, Number(els.settingsAutoSyncMinutes.value) || 0),
+        lastSyncAt: state.ui.settings?.lastSyncAt || ''
+      };
+      state.ui.scope = state.ui.settings.defaultScope;
+      state.ui.selectedViewId = state.ui.settings.defaultView;
+      els.settingsModal.classList.remove('open');
+      render();
+    };
+    els.resetSettingsBtn.onclick = () => {
+      state.ui.settings = {
+        defaultScope: 'both',
+        defaultView: 'inbox',
+        hideCompleted: false,
+        showEmptySections: true,
+        showDuration: true,
+        showEmptyViews: true,
+        showCompletedView: true,
+        blobUrl: '',
+        autoSyncMinutes: 0,
+        lastSyncAt: ''
+      };
+      els.settingsDefaultScope.value = state.ui.settings.defaultScope;
+      els.settingsDefaultView.value = state.ui.settings.defaultView;
+      els.settingsHideCompleted.checked = state.ui.settings.hideCompleted;
+      els.settingsShowEmptySections.checked = state.ui.settings.showEmptySections;
+      els.settingsShowDuration.checked = state.ui.settings.showDuration;
+      els.settingsShowEmptyViews.checked = state.ui.settings.showEmptyViews;
+      els.settingsShowCompletedView.checked = state.ui.settings.showCompletedView;
+      els.settingsBlobUrl.value = '';
+      els.settingsAutoSyncMinutes.value = '0';
+      els.settingsLastSync.textContent = 'Last sync: never';
+    };
+    els.exportBtn.onclick = exportJson;
+    els.importBtn.onclick = importJson;
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        state.ui.selectedProjectId = null;
+        state.ui.selectedViewId = 'inbox';
+        if (els.quickTaskProject) els.quickTaskProject.value = '';
+        if (els.quickTaskTitle) els.quickTaskTitle.focus();
+      }
+    });
+
+    if (els.progressToggle) {
+      els.progressToggle.onclick = () => {
+        els.progressToggle.closest('.collapsible').classList.toggle('open');
+      };
+    }
+
+    render();
+  </script>
+</body>
+</html>

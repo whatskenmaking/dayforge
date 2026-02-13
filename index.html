@@ -2554,6 +2554,7 @@
         e.stopPropagation();
         selectedTaskId = task.id;
         render();
+        if (typeof mobileShowDetail === 'function') mobileShowDetail();
       };
       actions.appendChild(editBtn);
       if (state.ui.selectedProjectId) {
@@ -2580,6 +2581,7 @@
       card.onclick = () => {
         selectedTaskId = task.id;
         render();
+        if (typeof mobileShowDetail === 'function') mobileShowDetail();
       };
 
       card.appendChild(checkbox);
@@ -2637,12 +2639,8 @@
     }
 
     function renderDetail() {
-      const isMobileNow = window.matchMedia('(max-width: 900px)').matches;
       const task = state.tasks.find(t => t.id === selectedTaskId);
       const project = state.projects.find(p => p.id === state.ui.selectedProjectId);
-      if (isMobileNow && (task || project)) {
-        mobileShowDetail();
-      }
       if (!task && !project) {
         els.detailsTitle.textContent = 'Task Details';
         els.detailsEmpty.style.display = 'block';
@@ -3383,7 +3381,6 @@
 
     // Navigate back to home screen
     function mobileShowHome() {
-      if (!isMobile()) return;
       contentScreen.classList.remove('screen-visible');
       sidebarPanel.classList.remove('screen-hidden');
       detailsPanel.classList.remove('mobile-open');
@@ -3404,7 +3401,10 @@
       mobileBackdrop.classList.remove('visible');
     }
 
-    mobileBackdrop.onclick = mobileDismissDetail;
+    mobileBackdrop.onclick = () => {
+      mobileDismissDetail();
+      selectedTaskId = null;
+    };
 
     // Back button
     document.getElementById('mobileBackBtn').onclick = mobileShowHome;
@@ -3415,7 +3415,10 @@
     };
 
     // Detail sheet done button
-    document.getElementById('mobileCloseDetails').onclick = mobileDismissDetail;
+    document.getElementById('mobileCloseDetails').onclick = () => {
+      mobileDismissDetail();
+      selectedTaskId = null;
+    };
 
     // FAB — add a new task
     document.getElementById('mobileFab').onclick = () => {
@@ -3490,10 +3493,14 @@
       }
     });
 
-    // On initial load on mobile, show home screen
+    // On initial load on mobile, always start on home screen
     if (isMobile()) {
       contentScreen.classList.remove('screen-visible');
       sidebarPanel.classList.remove('screen-hidden');
+      // Default to inbox view on mobile to avoid stale project state
+      if (!state.ui.selectedViewId) {
+        state.ui.selectedViewId = 'inbox';
+      }
     }
 
     render();

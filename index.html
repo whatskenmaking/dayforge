@@ -1560,6 +1560,7 @@
     };
 
     const state = loadState();
+    purgeTombstones();
     let selectedTaskId = null;
     let autoSyncTimer = null;
     let autoSyncMinutes = 0;
@@ -1624,6 +1625,8 @@
           notes: p.notes || '',
           start: p.start || '',
           due: p.due || '',
+          deleted: Boolean(p.deleted),
+          deletedAt: p.deletedAt || '',
           updatedAt: p.updatedAt || nowIso
         })),
         tasks: tasks.map(t => ({
@@ -1668,7 +1671,9 @@
           pointsAwarded: Boolean(t.pointsAwarded),
           pointsEarned: Number.isFinite(Number(t.pointsEarned)) ? Number(t.pointsEarned) : 0,
           inboxProcessed: Boolean(t.inboxProcessed),
-          inboxProcessedAt: t.inboxProcessedAt || ''
+          inboxProcessedAt: t.inboxProcessedAt || '',
+          deleted: Boolean(t.deleted),
+          deletedAt: t.deletedAt || ''
         })),
         ui: {
           selectedViewId: ui.selectedViewId || 'inbox',
@@ -1711,6 +1716,13 @@
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    // Purge tombstones older than 30 days to keep state lean
+    function purgeTombstones() {
+      const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      state.tasks = state.tasks.filter(t => !t.deleted || Date.parse(t.deletedAt) > cutoff);
+      state.projects = state.projects.filter(p => !p.deleted || Date.parse(p.deletedAt) > cutoff);
     }
 
     function todayStr() {
@@ -1760,7 +1772,7 @@
       const score = state.ui.score;
       const today = todayStr();
       if (score.inboxPenaltyDate === today) return;
-      const overdueCount = state.tasks.filter(task => isInboxTask(task) && task.status !== 'done' && taskAgeDays(task) >= 1).length;
+      const overdueCount = state.tasks.filter(task => !task.deleted && isInboxTask(task) && task.status !== 'done' && taskAgeDays(task) >= 1).length;
       if (overdueCount > 0) {
         addScore(-INBOX_PENALTY_POINTS * overdueCount);
       }
@@ -1799,7 +1811,7 @@
     }
 
     function nextOrder(projectId, phaseId) {
-      const same = state.tasks.filter(t => t.projectId === projectId && (t.phaseId || '') === (phaseId || ''));
+      const same = state.tasks.filter(t => !t.deleted && t.projectId === projectId && (t.phaseId || '') === (phaseId || ''));
       const max = same.reduce((acc, t) => {
         const v = Number.isFinite(Number(t.order)) ? Number(t.order) : 0;
         return Math.max(acc, v);
@@ -1809,7 +1821,7 @@
 
     function normalizeSectionOrder(projectId, phaseId) {
       const list = state.tasks
-        .filter(t => t.projectId === projectId && (t.phaseId || '') === (phaseId || ''))
+        .filter(t => !t.deleted && t.projectId === projectId && (t.phaseId || '') === (phaseId || ''))
         .sort((a, b) => {
           const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 1e9;
           const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 1e9;
@@ -1822,7 +1834,7 @@
 
     function moveTaskInSection(task, direction) {
       const list = state.tasks
-        .filter(t => t.projectId === task.projectId && (t.phaseId || '') === (task.phaseId || ''))
+        .filter(t => !t.deleted && t.projectId === task.projectId && (t.phaseId || '') === (task.phaseId || ''))
         .sort((a, b) => {
           const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 1e9;
           const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 1e9;
@@ -2170,7 +2182,7 @@
         if (hideWork() && group.id === 'work') return;
         if (hidePersonal() && group.id === 'personal') return;
         const projects = state.projects
-          .filter(p => !p.archived && (p.area || 'general') === group.id)
+          .filter(p => !p.deleted && !p.archived && (p.area || 'general') === group.id)
           .sort((a, b) => {
             const prioDiff = (priorityRank[a.priority || 'normal'] ?? 99) - (priorityRank[b.priority || 'normal'] ?? 99);
             if (prioDiff !== 0) return prioDiff;
@@ -2185,7 +2197,7 @@
         heading.textContent = group.label;
         els.projectList.appendChild(heading);
         projects.forEach(project => {
-          const count = state.tasks.filter(t => t.projectId === project.id && t.status !== 'done').length;
+          const count = state.tasks.filter(t => !t.deleted && t.projectId === project.id && t.status !== 'done').length;
           const item = document.createElement('div');
           item.className = 'project-item' + (state.ui.selectedProjectId === project.id ? ' active' : '');
           item.innerHTML = `
@@ -2260,6 +2272,7 @@
     }
 
     function taskVisible(task) {
+      if (task.deleted) return false;
       if (hideWork() && isWorkTask(task)) return false;
       if (hidePersonal() && isPersonalTask(task)) return false;
       return true;
@@ -2271,7 +2284,7 @@
       const project = state.projects.find(p => p.id === task.projectId);
       if (!project || !(project.sequentialSections || []).includes(task.phaseId)) return false;
       const list = state.tasks
-        .filter(t => t.projectId === task.projectId && (t.phaseId || '') === (task.phaseId || ''))
+        .filter(t => !t.deleted && t.projectId === task.projectId && (t.phaseId || '') === (task.phaseId || ''))
         .sort((a, b) => {
           const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 1e9;
           const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 1e9;
@@ -2286,7 +2299,7 @@
       const project = state.projects.find(p => p.id === projectId);
       if (!project || !(project.sequentialSections || []).includes(phaseId)) return;
       const list = state.tasks
-        .filter(t => t.projectId === projectId && (t.phaseId || '') === (phaseId || ''))
+        .filter(t => !t.deleted && t.projectId === projectId && (t.phaseId || '') === (phaseId || ''))
         .sort((a, b) => {
           const ao = Number.isFinite(Number(a.order)) ? Number(a.order) : 1e9;
           const bo = Number.isFinite(Number(b.order)) ? Number(b.order) : 1e9;
@@ -2600,7 +2613,7 @@
 
     function renderProjectOptions() {
       els.detailProject.innerHTML = '<option value="">Inbox</option>';
-      state.projects.filter(p => !p.archived).forEach(project => {
+      state.projects.filter(p => !p.deleted && !p.archived).forEach(project => {
         if (hideWork() && (project.area || 'general') === 'work') return;
         if (hidePersonal() && (project.area || 'general') === 'personal') return;
         const opt = document.createElement('option');
@@ -2609,7 +2622,7 @@
         els.detailProject.appendChild(opt);
       });
       els.quickTaskProject.innerHTML = '<option value="">Inbox</option>';
-      state.projects.filter(p => !p.archived).forEach(project => {
+      state.projects.filter(p => !p.deleted && !p.archived).forEach(project => {
         if (hideWork() && (project.area || 'general') === 'work') return;
         if (hidePersonal() && (project.area || 'general') === 'personal') return;
         const opt = document.createElement('option');
@@ -2849,22 +2862,24 @@
     }
 
     function deleteTask() {
-      const idx = state.tasks.findIndex(t => t.id === selectedTaskId);
-      if (idx === -1) return;
+      const task = state.tasks.find(t => t.id === selectedTaskId);
+      if (!task) return;
       if (!confirm('Delete this task?')) return;
       const timer = getTimerState();
       if (timer.activeTaskId === selectedTaskId) {
         timer.activeTaskId = null;
       }
-      state.tasks.splice(idx, 1);
+      task.deleted = true;
+      task.deletedAt = new Date().toISOString();
+      task.updatedAt = new Date().toISOString();
       selectedTaskId = null;
       render();
     }
 
     function deleteProject(projectId) {
-      const project = state.projects.find(p => p.id === projectId);
+      const project = state.projects.find(p => p.id === projectId && !p.deleted);
       if (!project) return;
-      const taskCount = state.tasks.filter(t => t.projectId === projectId).length;
+      const taskCount = state.tasks.filter(t => !t.deleted && t.projectId === projectId).length;
       const message = taskCount
         ? `Delete project "${project.name}"? ${taskCount} task(s) will be moved to Inbox.`
         : `Delete project "${project.name}"?`;
@@ -2873,12 +2888,15 @@
         if (t.projectId === projectId) {
           t.projectId = null;
           t.phaseId = '';
+          t.updatedAt = new Date().toISOString();
         }
       });
-      state.projects = state.projects.filter(p => p.id !== projectId);
+      project.deleted = true;
+      project.deletedAt = new Date().toISOString();
+      project.updatedAt = new Date().toISOString();
       const timer = getTimerState();
       if (timer.activeTaskId) {
-        const task = state.tasks.find(t => t.id === timer.activeTaskId);
+        const task = state.tasks.find(t => t.id === timer.activeTaskId && !t.deleted);
         if (!task) timer.activeTaskId = null;
       }
       if (state.ui.selectedProjectId === projectId) {
@@ -3066,6 +3084,7 @@
         if (!res.ok) throw new Error(`Download failed (${res.status})`);
         const imported = await res.json();
         mergeImport(imported, 'merge');
+        purgeTombstones();
         state.ui.settings.lastSyncAt = new Date().toLocaleString();
         saveState();
         if (els.settingsLastSync) {
